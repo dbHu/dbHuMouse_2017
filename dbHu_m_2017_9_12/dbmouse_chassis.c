@@ -129,6 +129,18 @@ void DBMOUSE_initGeneral(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOL);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOR);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOS);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOT);
 }
 
 /*
@@ -137,6 +149,10 @@ void DBMOUSE_initGeneral(void)
 /* Place into subsections to allow the TI linker to remove items properly */
 #if defined(__TI_COMPILER_VERSION__)
 #pragma DATA_SECTION(GPIOTiva_config, ".const:GPIOTiva_config")
+
+//TODO
+// #pragma DATA_SECTION(emacHWAttrs, ".const:emacHWAttrs")
+// #pragma DATA_SECTION(NIMUDeviceTable, ".data:NIMUDeviceTable")
 #endif
 
 #include <ti/drivers/GPIO.h>
@@ -152,21 +168,19 @@ void DBMOUSE_initGeneral(void)
  */
 GPIO_PinConfig gpioPinConfigs[] = {
         //    DBMOUSE_IR_FL
-        GPIOTiva_PB_6 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
+        GPIOTiva_PE_1 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_FR
-        GPIOTiva_PB_0 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
+        GPIOTiva_PD_5 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_SL
-        GPIOTiva_PD_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
+        GPIOTiva_PE_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_SR
-        GPIOTiva_PB_1 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
-        /* DBMOUSE_LED_0 */
-        GPIOTiva_PB_7 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
-        /* DBMOUSE_LED_1 */
-        GPIOTiva_PF_4 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
-        /* DBMOUSE_LED_2 */
-        GPIOTiva_PE_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
-        /* DBMOUSE_LED_3 */
-        GPIOTiva_PE_1 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH
+        GPIOTiva_PD_7 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
+        /* DBMOUSE_LED_0 R*/
+        GPIOTiva_PD_2 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
+        /* DBMOUSE_LED_1 G*/
+        GPIOTiva_PD_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
+        /* DBMOUSE_LED_2 B*/
+        GPIOTiva_PQ_0 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
 };
 
 /*
@@ -224,8 +238,8 @@ I2CTiva_Object i2cTivaObjects[DBMOUSE_I2CCOUNT];
 
 const I2CTiva_HWAttrs i2cTivaHWAttrs[DBMOUSE_I2CCOUNT] = {
     {
-        .baseAddr = I2C0_BASE,
-        .intNum = INT_I2C0,
+        .baseAddr = I2C7_BASE,
+        .intNum = INT_I2C7,
         .intPriority = (~0)
     }
 };
@@ -246,13 +260,13 @@ void DBMOUSE_initI2C(void)
 {
     /* I2C0 Init */
     /* Enable the peripheral */
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C7);
 
     /* Configure the appropriate pins to be I2C instead of GPIO. */
-    GPIOPinConfigure(GPIO_PB2_I2C0SCL);
-    GPIOPinConfigure(GPIO_PB3_I2C0SDA);
-    GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
-    GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
+    GPIOPinConfigure(GPIO_PD0_I2C7SCL);
+    GPIOPinConfigure(GPIO_PD1_I2C7SDA);
+    GPIOPinTypeI2CSCL(GPIO_PORTD_BASE, GPIO_PIN_0);
+    GPIOPinTypeI2C(GPIO_PORTD_BASE, GPIO_PIN_1);
 
     I2C_init();
 }
@@ -273,23 +287,23 @@ PWMTiva_Object pwmTivaObjects[DBMOUSE_PWMCOUNT];
 
 const PWMTiva_HWAttrs pwmTivaHWAttrs[DBMOUSE_PWMCOUNT] = {
     {	// right positive
-        .baseAddr = PWM1_BASE,
-        .pwmOutput = PWM_OUT_7,
-        .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
-    },
-    {	// right negative
-        .baseAddr = PWM1_BASE,
-        .pwmOutput = PWM_OUT_6,
-        .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
-    },
-    {	// left positive
-        .baseAddr = PWM1_BASE,
+        .baseAddr = PWM0_BASE,
         .pwmOutput = PWM_OUT_4,
         .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
     },
-    {	// left negative
-        .baseAddr = PWM1_BASE,
+    {	// right negative
+        .baseAddr = PWM0_BASE,
         .pwmOutput = PWM_OUT_5,
+        .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
+    },
+    {	// left positive
+        .baseAddr = PWM0_BASE,
+        .pwmOutput = PWM_OUT_1,
+        .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
+    },
+    {	// left negative
+        .baseAddr = PWM0_BASE,
+        .pwmOutput = PWM_OUT_0,
         .pwmGenOpts = PWM_GEN_MODE_DOWN | PWM_GEN_MODE_DBG_RUN
     }
 };
@@ -324,13 +338,14 @@ const PWM_Config PWM_config[] = {
 void DBMOUSE_initPWM(void)
 {
     /* Enable PWM peripherals */
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
 
-    GPIOPinConfigure(GPIO_PF3_M1PWM7);
-    GPIOPinConfigure(GPIO_PF2_M1PWM6);
-    GPIOPinConfigure(GPIO_PF0_M1PWM4);
-    GPIOPinConfigure(GPIO_PF1_M1PWM5);
-    GPIOPinTypePWM(GPIO_PORTF_BASE, GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_0 | GPIO_PIN_1);
+    GPIOPinConfigure(GPIO_PG0_M0PWM4);
+    GPIOPinConfigure(GPIO_PG1_M0PWM5);
+    GPIOPinConfigure(GPIO_PF1_M0PWM1);
+    GPIOPinConfigure(GPIO_PF0_M0PWM0);
+    GPIOPinTypePWM(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    GPIOPinTypePWM(GPIO_PORTG_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
     PWM_init();
 }
@@ -555,11 +570,11 @@ UARTTivaDMA_Object uartTivaObjects[DBMOUSE_UARTCOUNT];
 
 const UARTTivaDMA_HWAttrs uartTivaHWAttrs[DBMOUSE_UARTCOUNT] = {
     {
-        .baseAddr = UART0_BASE,
-        .intNum = INT_UART0,
+        .baseAddr = UART2_BASE,
+        .intNum = INT_UART2,
         .intPriority = (~0),
-        .rxChannelIndex = UDMA_CH8_UART0RX,
-        .txChannelIndex = UDMA_CH9_UART0TX,
+        .rxChannelIndex = UDMA_CH12_UART2RX,
+        .txChannelIndex = UDMA_CH13_UART2TX,
     }
 };
 
@@ -579,8 +594,8 @@ unsigned char uartTivaRingBuffer[DBMOUSE_UARTCOUNT][UART_BUF_LEN];
 /* UART configuration structure */
 const UARTTiva_HWAttrs uartTivaHWAttrs[DBMOUSE_UARTCOUNT] = {
     {
-        .baseAddr = UART0_BASE,
-        .intNum = INT_UART0,
+        .baseAddr = UART2_BASE,
+        .intNum = INT_UART2,
         .intPriority = (~0),
         .flowControl = UART_FLOWCONTROL_NONE,
         .ringBufPtr  = uartTivaRingBuffer[0],
@@ -604,10 +619,10 @@ const UART_Config UART_config[] = {
 void DBMOUSE_initUART(void)
 {
     /* Enable and configure the peripherals used by the uart. */
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
-    GPIOPinConfigure(GPIO_PA0_U0RX);
-    GPIOPinConfigure(GPIO_PA1_U0TX);
-    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART2);
+    GPIOPinConfigure(GPIO_PA6_U2RX);
+    GPIOPinConfigure(GPIO_PA7_U2TX);
+    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7);
 
     /* Initialize the UART driver */
 #if TI_DRIVERS_UART_DMA
