@@ -11,7 +11,7 @@ var makeAssembly = false;
 var Executable = xdc.module('xdc.bld.Executable');
 
 var exeOpts = new Executable.Attrs({
-        cfgScript: 'D:/doubi/desktop/cute_mouse/project/dbHu_m/empty.cfg',
+        cfgScript: 'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg',
         profile: 'release',
         cfgHome: 'xconfig_empty',
 });
@@ -40,8 +40,8 @@ else {
 }
 
 var thisObj = {
-    cfg:        'D:/doubi/desktop/cute_mouse/project/dbHu_m/empty.cfg',
-    outputPath: 'D:/doubi/desktop/cute_mouse/project/dbHu_m/.config/xconfig_empty',
+    cfg:        'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg',
+    outputPath: 'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/.config/xconfig_empty',
     exeName:    'empty' + suffix,
     exeIntName: 'empty' + suffix.replace('.', '_'),
     targ:       targ,

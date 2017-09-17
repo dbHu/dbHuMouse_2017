@@ -10,7 +10,7 @@
 
 void MotorPwmCoast();
 
-// r,l -> [-999, 999]
+// r,l -> [-479, 479]
 void MotorPwmSetDuty(short r, short l);
 
 void MotorPwmInit();

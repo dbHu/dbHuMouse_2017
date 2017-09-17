@@ -7,5 +7,5 @@
 #       or equal to the generated config header
 #
 linker.cmd: package/cfg/empty_pem4f.xdl
-	$(SED) 's"^\"\(package/cfg/empty_pem4fcfg.cmd\)\"$""\"D:/doubi/desktop/cute_mouse/project/dbHu_m/.config/xconfig_empty/\1\""' package/cfg/empty_pem4f.xdl > $@
+	$(SED) 's"^\"\(package/cfg/empty_pem4fcfg.cmd\)\"$""\"D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/.config/xconfig_empty/\1\""' package/cfg/empty_pem4f.xdl > $@
 	-$(SETDATE) -r:max package/cfg/empty_pem4f.h compiler.opt compiler.opt.defs

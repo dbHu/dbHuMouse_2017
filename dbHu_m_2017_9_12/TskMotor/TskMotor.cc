@@ -165,8 +165,9 @@ void task(UArg arg0, UArg arg1)
             System_abort("pend SemMotTick failed!\n");
 //        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
 
+        //TODO
         // read encder
-        EncVel = WheelEncGetVel(EncRVel, EncLVel);
+        //EncVel = WheelEncGetVel(EncRVel, EncLVel);
 
         // read gyro, accm
         if(!ImuGetValues(imuVals))

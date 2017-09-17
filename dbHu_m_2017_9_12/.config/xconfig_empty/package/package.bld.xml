@@ -7,7 +7,7 @@
         <srcFile name="package/cfg/empty_pem4f.c"/>
     </sources>
     <configscripts>
-        <srcFile name="D:/doubi/desktop/cute_mouse/project/dbHu_m/empty.cfg"/>
+        <srcFile name="D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg"/>
     </configscripts>
     <makefiles>
         <srcFile name="package.mak" src="package.bld"/>
@@ -44,7 +44,7 @@
         isPartial="false"
         xCfgScript="package/cfg/empty_pem4f.cfg"
         xCfgPrefix="package/cfg/empty_pem4f"
-        cfgScript="D:/doubi/desktop/cute_mouse/project/dbHu_m/empty.cfg"
+        cfgScript="D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg"
         cfgArgs="null"
         />
     </configurations>
@@ -56,7 +56,7 @@
         profile="release"
         xCfgScript="package/cfg/empty_pem4f.cfg"
         xCfgPrefix="package/cfg/empty_pem4f"
-        cfgScript="D:/doubi/desktop/cute_mouse/project/dbHu_m/empty.cfg"
+        cfgScript="D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg"
         cfgArgs="null"
         />
     </executables>

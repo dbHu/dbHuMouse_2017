@@ -54,35 +54,8 @@ extern "C" {
 #define Board_LED_0                 DBMOUSE_LED_0
 #define Board_LED_1                 DBMOUSE_LED_1
 #define Board_LED_2                 DBMOUSE_LED_2
-#define Board_LED_3                 DBMOUSE_LED_3
 
 #define Board_I2C_IMU               DBMOUSE_I2C_IMU
-//#define Board_I2C1                  DBMOUSE_I2C3
-//#define Board_I2C_TMP               DBMOUSE_I2C3
-//#define Board_I2C_NFC               DBMOUSE_I2C3
-//#define Board_I2C_TPL0401           DBMOUSE_I2C3
-
-#define Board_PWM0                  DBMOUSE_PWM6
-#define Board_PWM1                  DBMOUSE_PWM7
-
-#define Board_SDSPI0                DBMOUSE_SDSPI0
-
-#define Board_SPI0                  DBMOUSE_SPI0
-#define Board_SPI1                  DBMOUSE_SPI3
-
-#define Board_USBDEVICE             DBMOUSE_USBDEVICE
-
-#define Board_UART0                 DBMOUSE_UART_DBG
-
-#define Board_WATCHDOG0             DBMOUSE_WATCHDOG0
-
-#define Board_WIFI                  DBMOUSE_WIFI
-#define Board_WIFI_SPI              DBMOUSE_SPI2
-
-/* Board specific I2C addresses */
-#define Board_TMP006_ADDR           (0x40)
-#define Board_RF430CL330_ADDR       (0x28)
-#define Board_TPL0401_ADDR          (0x40)
 
 #ifdef __cplusplus
 }

@@ -17,78 +17,94 @@
 void MotorPwmCoast()
 {   // p - low, n - low
     // zero - fall
+
     // motor right
-    HWREG(PWM1_BASE | PWM_O_3_GENA) = 0x002;    // zero - fall
-    HWREG(PWM1_BASE | PWM_O_3_GENB) = 0x002;    // zero - fall
+    //M0PWM4 gen2 A  MOTRP       
+    //M0PWM5 gen2 B  MOTRN
+    HWREG(PWM0_BASE | PWM_O_2_GENA) = 0x002;    // zero - fall
+    HWREG(PWM0_BASE | PWM_O_2_GENB) = 0x002;    // zero - fall
+
     // motor left
-    HWREG(PWM1_BASE | PWM_O_2_GENA) = 0x002;    // zero - fall
-    HWREG(PWM1_BASE | PWM_O_2_GENB) = 0x002;    // zero - fall
+    //M0PWM0 gen0 A MOTLN
+    //M0PWM1 gen0 B MOTLP
+    HWREG(PWM0_BASE | PWM_O_0_GENA) = 0x002;    // zero - fall
+    HWREG(PWM0_BASE | PWM_O_0_GENB) = 0x002;    // zero - fall
+
     // update
-    HWREG(PWM1_BASE | PWM_O_CTL) = 0xC; // update gen3, gen2
+    HWREG(PWM0_BASE | PWM_O_CTL) = 0xC; // update gen0, gen2
 }
 
-// r,l -> [-319, 319]
+// r,l -> [-479, 479]
 void MotorPwmSetDuty(short r, short l)
 {
+    //M0PWM4 gen2 A  MOTRP       
+    //M0PWM5 gen2 B  MOTRN
     if(r < 0)
     {
-        // cmp a -> gen b -> pwm7 -> rp : -> abs(r)
-        //          gen a -> pwm6 -> rn : steady high
-        HWREG(PWM1_BASE | PWM_O_3_CMPA) = -r;
-        HWREG(PWM1_BASE | PWM_O_3_GENA) = 0x083;
-        HWREG(PWM1_BASE | PWM_O_3_GENB) = 0x003;
+        //          gen a -> pwm4 -> rp : -> abs(r)
+        // cmp a -> gen b -> pwm5 -> rn : steady high
+        HWREG(PWM0_BASE | PWM_O_2_CMPA) = -r;
+        HWREG(PWM0_BASE | PWM_O_2_GENA) = 0x083;
+        HWREG(PWM0_BASE | PWM_O_2_GENB) = 0x003;
     }
     else
     {
-        //          gen b -> pwm7 -> rp : steady high
-        // cmp a -> gen a -> pwm6 -> rn : -> abs(r)
-        HWREG(PWM1_BASE | PWM_O_3_CMPA) = r;
-        HWREG(PWM1_BASE | PWM_O_3_GENA) = 0x003;
-        HWREG(PWM1_BASE | PWM_O_3_GENB) = 0x083;
+        // cmp a -> gen a -> pwm4 -> rp : steady high
+        //          gen b -> pwm5 -> rn : -> abs(r)
+        HWREG(PWM0_BASE | PWM_O_2_CMPA) = r;
+        HWREG(PWM0_BASE | PWM_O_2_GENA) = 0x003;
+        HWREG(PWM0_BASE | PWM_O_2_GENB) = 0x083;
     }
+
+    //M0PWM0 gen0 A MOTLN
+    //M0PWM1 gen0 B MOTLP
     if(l < 0)
     {
-        // cmp a -> gen a -> pwm4 -> rp : -> abs(l)
-        //          gen b -> pwm5 -> rn : steady high
-        HWREG(PWM1_BASE | PWM_O_2_CMPA) = -l;
-        HWREG(PWM1_BASE | PWM_O_2_GENA) = 0x003;
-        HWREG(PWM1_BASE | PWM_O_2_GENB) = 0x083;
+        // cmp a -> gen b -> pwm1 -> lp : -> abs(l)
+        //          gen a -> pwm0 -> ln : steady high
+        HWREG(PWM0_BASE | PWM_O_0_CMPA) = -l;
+        HWREG(PWM0_BASE | PWM_O_0_GENA) = 0x003;
+        HWREG(PWM0_BASE | PWM_O_0_GENB) = 0x083;
     }
     else
     {
-        //          gen b -> pwm7 -> rp : steady high
-        // cmp a -> gen a -> pwm6 -> rn : -> abs(l)
-        HWREG(PWM1_BASE | PWM_O_2_CMPA) = l;
-        HWREG(PWM1_BASE | PWM_O_2_GENA) = 0x083;
-        HWREG(PWM1_BASE | PWM_O_2_GENB) = 0x003;
+        //          gen b -> pwm1 -> lp : steady high
+        // cmp a -> gen a -> pwm0 -> ln : -> abs(l)
+        HWREG(PWM0_BASE | PWM_O_0_CMPA) = l;
+        HWREG(PWM0_BASE | PWM_O_0_GENA) = 0x083;
+        HWREG(PWM0_BASE | PWM_O_0_GENB) = 0x003;
     }
     // update
-    HWREG(PWM1_BASE | PWM_O_CTL) = 0xC; // update gen3, gen2
+    HWREG(PWM0_BASE | PWM_O_CTL) = 0xC; // update gen0, gen2
 }
 
 void MotorPwmInit()
 {
     HWREG(SYSCTL_RCC) &= ~SYSCTL_RCC_USEPWMDIV; // pwm clock use sysclock
 //    HWREG(SYSCTL_RCGCPWM) = HWREG(SYSCTL_RCGCPWM) & 0xFFFFFFFC | 0x00000002;    // enable PWM1
-    HWREG(SYSCTL_RCGCPWM) = 0x00000002;    // enable PWM1, disable PWM0
+    HWREG(SYSCTL_RCGCPWM) = 0x00000001;    // enable PWM0, disable PWM1
 
-    HWREG(GPIO_PORTF_BASE | GPIO_O_AFSEL) |= 0x0000000F;    // port f[3..0] as alternate func
-    HWREG(GPIO_PORTF_BASE | GPIO_O_DEN) |= 0x0000000F;    // port f[3..0] digital enable
-    HWREG(GPIO_PORTF_BASE | GPIO_O_PCTL) = HWREG(GPIO_PORTF_BASE | GPIO_O_PCTL) & 0xFFFF0000 | 0x00005555;  // port f[3..0] as af5(pwm)
+    HWREG(GPIO_PORTF_BASE | GPIO_O_AFSEL) |= 0x00000003;    // port f[1..0] as alternate func
+    HWREG(GPIO_PORTF_BASE | GPIO_O_DEN) |= 0x00000003;    // port f[1..0] digital enable
+    HWREG(GPIO_PORTF_BASE | GPIO_O_PCTL) = HWREG(GPIO_PORTF_BASE | GPIO_O_PCTL) & 0xFFFFFF00 | 0x00000055;  // port f[1..0] as af5(pwm)
+ 
+    HWREG(GPIO_PORTG_BASE | GPIO_O_AFSEL) |= 0x00000003;    // port g[1..0] as alternate func
+    HWREG(GPIO_PORTG_BASE | GPIO_O_DEN) |= 0x00000003;    // port g[1..0] digital enable
+    HWREG(GPIO_PORTG_BASE | GPIO_O_PCTL) = HWREG(GPIO_PORTG_BASE | GPIO_O_PCTL) & 0xFFFFFF00 | 0x00000055;  // port g[1..0] as af5(pwm)
 
 //    HWREG(PWM1_BASE | PWM_O_ENUPD) = 0x0000FF00;    // pwm 4~7 enable update by glb sync
 
-    HWREG(PWM1_BASE | PWM_O_2_LOAD) = 319;   // pwm gen 2 freq 80M/320 = 250k
-    HWREG(PWM1_BASE | PWM_O_3_LOAD) = 319;   // pwm gen 3 freq 80M/320 = 250k
+    HWREG(PWM0_BASE | PWM_O_2_LOAD) = 479;   // pwm gen 2 freq 120M/480 = 250k
+    HWREG(PWM0_BASE | PWM_O_0_LOAD) = 479;   // pwm gen 0 freq 120M/480 = 250k
 
-    HWREG(PWM1_BASE | PWM_O_2_CTL) = 0x000003FD;   // enable pwm gen 2; cnt down mode; run in debug; load, cmp, gen update by glb sync
-    HWREG(PWM1_BASE | PWM_O_3_CTL) = 0x000003FD;   // enable pwm gen 3; ...
+    HWREG(PWM0_BASE | PWM_O_2_CTL) = 0x000003FD;   // enable pwm gen 2; cnt down mode; run in debug; load, cmp, gen update by glb sync
+    HWREG(PWM0_BASE | PWM_O_0_CTL) = 0x000003FD;   // enable pwm gen 0; ...
 
-    HWREG(PWM1_BASE | PWM_O_SYNC) = 0x0000000C; // sycn cnt 2 & cnt 3
+    HWREG(PWM0_BASE | PWM_O_SYNC) = 0x00000005; // sycn cnt 2 & cnt 0
 
     MotorPwmCoast();
 
-    HWREG(PWM1_BASE | PWM_O_ENABLE) = 0xF0; // enable output 4~7
+    HWREG(PWM0_BASE | PWM_O_ENABLE) = 0x33; // enable output 4、5、0、1
 //    HWREG(PWM1_BASE | PWM_O_CTL) = 0xC; // update gen3, gen2
 
 }

@@ -16,7 +16,7 @@
 
 #include "Imu.h"
 
-const unsigned char Mpu6050Addr = 0x68;
+const unsigned char Mpu6050Addr = 0x69;
 
 I2C_Handle iicImu;
 I2C_Params iicImuParams;
