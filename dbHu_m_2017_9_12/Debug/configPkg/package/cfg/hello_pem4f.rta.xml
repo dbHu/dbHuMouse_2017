@@ -8,7 +8,7 @@
   <dataTransportClassName>undefined</dataTransportClassName>
   <controlTransportClassName>undefined</controlTransportClassName>
   <loggers-length>0</loggers-length>
-  <modMap-length>37</modMap-length>
+  <modMap-length>36</modMap-length>
   <modMap key="xdc.runtime.Assert">
     <id>32770</id>
     <logger>null</logger>
@@ -134,67 +134,62 @@
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <modMap key="ti.sysbios.utils.Load">
+  <modMap key="ti.sysbios.hal.Hwi">
     <id>32803</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <modMap key="ti.sysbios.hal.Hwi">
-    <id>32805</id>
-    <logger>null</logger>
-    <diagsMask>0000110000000000</diagsMask>
-  </modMap>
   <modMap key="ti.sysbios.hal.Timer">
-    <id>32806</id>
+    <id>32804</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.BIOS">
-    <id>32807</id>
+    <id>32805</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.family.arm.m3.Hwi">
-    <id>32811</id>
+    <id>32809</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.family.arm.m3.IntrinsicsSupport">
-    <id>32812</id>
+    <id>32810</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.family.arm.m3.TaskSupport">
-    <id>32813</id>
+    <id>32811</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.gates.GateHwi">
-    <id>32815</id>
+    <id>32813</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.gates.GateMutex">
-    <id>32816</id>
+    <id>32814</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.heaps.HeapMem">
-    <id>32818</id>
+    <id>32816</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.family.arm.lm4.TimestampProvider">
-    <id>32820</id>
+    <id>32818</id>
     <logger>null</logger>
     <diagsMask>0000100000000000</diagsMask>
   </modMap>
   <modMap key="ti.sysbios.family.arm.lm4.Timer">
-    <id>32821</id>
+    <id>32819</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <evtMap-length>37</evtMap-length>
+  <evtMap-length>33</evtMap-length>
   <evtMap key="xdc.runtime.Log.L_construct">
     <id>4823</id>
     <msg>%3C--+construct%3A+%25p%28%27%25s%27%29</msg>
@@ -319,28 +314,12 @@
     <id>5874</id>
     <msg>LD_noWork%3A+coreId%3A+%25d%2C+curSetLocal%3A+%25d%2C+curSetX%3A+%25d%2C+curMaskLocal%3A+%25d</msg>
   </evtMap>
-  <evtMap key="ti.sysbios.utils.Load.LS_cpuLoad">
-    <id>5944</id>
-    <msg>LS_cpuLoad%3A+%25d%25%25</msg>
-  </evtMap>
-  <evtMap key="ti.sysbios.utils.Load.LS_hwiLoad">
-    <id>5961</id>
-    <msg>LS_hwiLoad%3A+%25d%2C%25d</msg>
-  </evtMap>
-  <evtMap key="ti.sysbios.utils.Load.LS_swiLoad">
-    <id>5979</id>
-    <msg>LS_swiLoad%3A+%25d%2C%25d</msg>
-  </evtMap>
-  <evtMap key="ti.sysbios.utils.Load.LS_taskLoad">
-    <id>5997</id>
-    <msg>LS_taskLoad%3A+0x%25x%2C%25d%2C%25d%2C0x%25x</msg>
-  </evtMap>
   <evtMap key="ti.sysbios.family.arm.m3.Hwi.LM_begin">
-    <id>6026</id>
+    <id>5944</id>
     <msg>LM_begin%3A+hwi%3A+0x%25x%2C+func%3A+0x%25x%2C+preThread%3A+%25d%2C+intNum%3A+%25d%2C+irp%3A+0x%25x</msg>
   </evtMap>
   <evtMap key="ti.sysbios.family.arm.m3.Hwi.LD_end">
-    <id>6096</id>
+    <id>6014</id>
     <msg>LD_end%3A+hwi%3A+0x%25x</msg>
   </evtMap>
 </xdc.runtime.Types.RtaDecoderData>

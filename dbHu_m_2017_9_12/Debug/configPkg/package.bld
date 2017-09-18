@@ -2,7 +2,7 @@
 
 var targ = xdc.module('ti.targets.arm.elf.M4F');
 /* configuro was told the platform explicitly */
-var platform = 'ti.platforms.tiva:TM4C123GH6PM';
+var platform = 'ti.platforms.tiva:TM4C1294NCPDT';
 
 /* decide whether to make an assembly or an executable */
 var makeAssembly = false;
@@ -11,7 +11,7 @@ var makeAssembly = false;
 var Executable = xdc.module('xdc.bld.Executable');
 
 var exeOpts = new Executable.Attrs({
-        cfgScript: 'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/empty.cfg',
+        cfgScript: 'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/hello.cfg',
         profile: 'release',
         cfgHome: 'configPkg',
 });
@@ -20,7 +20,7 @@ exeOpts.cfgArgs = 'null';
 exeOpts.cfgArgsEncoded = true;
 
 var exe = Pkg[makeAssembly ? 'addAssembly': 'addExecutable'](
-    'empty',
+    'hello',
     targ,
     platform,
     exeOpts
@@ -40,10 +40,10 @@ else {
 }
 
 var thisObj = {
-    cfg:        '../empty.cfg',
+    cfg:        '../hello.cfg',
     outputPath: 'D:/doubi/desktop/dbMouse_2017/git_recode/dbHu_m_2017_9_12/Debug/configPkg',
-    exeName:    'empty' + suffix,
-    exeIntName: 'empty' + suffix.replace('.', '_'),
+    exeName:    'hello' + suffix,
+    exeIntName: 'hello' + suffix.replace('.', '_'),
     targ:       targ,
     linkerCommandFile: 'linker.cmd',
     compilerOptFile: 'compiler.opt',

@@ -5,7 +5,7 @@
 #
 #  target compatibility key = ti.targets.arm.elf.M4F{1,0,16.6,0
 #
-empty.xem4f: package/cfg/empty.xem4f.mak
+hello.xem4f: package/cfg/hello.xem4f.mak
 
 clean::
-	-$(RM) package/cfg/empty.xem4f.mak
+	-$(RM) package/cfg/hello.xem4f.mak

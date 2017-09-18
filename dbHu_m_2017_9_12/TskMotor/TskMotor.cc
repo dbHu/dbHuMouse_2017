@@ -145,8 +145,11 @@ void task(UArg arg0, UArg arg1)
 
     // initial motor pwm
     MotorPwmInit();
+
+    //TODO
     // initial qei
-    WheelEncInit();
+     WheelEncInit();
+    
     // initial imu
     ImuInit();
     // imu start 1st read

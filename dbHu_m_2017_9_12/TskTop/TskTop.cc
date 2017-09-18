@@ -421,10 +421,9 @@ void RushTest()
 
 void SetLeds(unsigned char val)
 {
-    GPIO_write(DBMOUSE_LED_0, (val & 0x8) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
-    GPIO_write(DBMOUSE_LED_1, (val & 0x4) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
-    GPIO_write(DBMOUSE_LED_2, (val & 0x2) ? DBMOUSE_LED_ON : DBMOUSE_LED_ON);
-    GPIO_write(DBMOUSE_LED_3, (val & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+    GPIO_write(DBMOUSE_LED_0, (val & 0x4) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+    GPIO_write(DBMOUSE_LED_1, (val & 0x2) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+    GPIO_write(DBMOUSE_LED_2, (val & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
 }
 
 void actPrint(TskAction::Act::ActType act, char *str)
@@ -559,45 +558,45 @@ void task(UArg arg0, UArg arg1)
 
     while(true)
     {
-//    	Mode = (MouseMode::ModeType)3;
-        Mode = (MouseMode::ModeType)(lroundf(TskMotor::DistanceAcc * 100.f) & 15);
-        if(Mode != lastMode)
-        {
-            SetLeds(Mode);
-            dbgPutModeName(Mode);
-        }
-        lastMode = Mode;
-        if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
-        {
-            switch(Mode)
-            {
-            case MouseMode::Idle:
-                break;
-            case MouseMode::EncImuMonitor:
-                encImuMonitor();
-                break;
-            case MouseMode::IrMonitor:
-                irMonitor();
-                break;
-            case MouseMode::IrCorrection:
-                doIrCorrection();
-                break;
-            case MouseMode::SolveTest:
-            	solveTest();
-            	break;
-            case MouseMode::ActionTest:
-            	actionTest();
-            	break;
-            case MouseMode::ClearMaze:
-            	clearMazeInfo();
-            	break;
-            case MouseMode::Gaming1:
-            	RushTest();
-            	break;
-            default:
-                break;
-            }
-        }
+   	    Mode = (MouseMode::ModeType)1;
+        // Mode = (MouseMode::ModeType)(lroundf(TskMotor::DistanceAcc * 100.f) & 15);
+        // if(Mode != lastMode)
+        // {
+        //     SetLeds(Mode);
+        //     dbgPutModeName(Mode);
+        // }
+        // lastMode = Mode;
+        // if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
+        // {
+        //     switch(Mode)
+        //     {
+        //     case MouseMode::Idle:
+        //         break;
+        //     case MouseMode::EncImuMonitor:
+        //         encImuMonitor();
+        //         break;
+        //     case MouseMode::IrMonitor:
+        //         irMonitor();
+        //         break;
+        //     case MouseMode::IrCorrection:
+        //         doIrCorrection();
+        //         break;
+        //     case MouseMode::SolveTest:
+        //     	solveTest();
+        //     	break;
+        //     case MouseMode::ActionTest:
+        //     	actionTest();
+        //     	break;
+        //     case MouseMode::ClearMaze:
+        //     	clearMazeInfo();
+        //     	break;
+        //     case MouseMode::Gaming1:
+        //     	RushTest();
+        //     	break;
+        //     default:
+        //         break;
+        //     }
+        // }
         Task_sleep(50);
     }
 

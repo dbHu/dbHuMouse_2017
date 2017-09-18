@@ -7,7 +7,7 @@ CMD_SRCS += \
 ../dbmouse_chassis.cmd 
 
 CFG_SRCS += \
-../empty.cfg 
+../hello.cfg 
 
 C_SRCS += \
 ../dbmouse_chassis.c 
