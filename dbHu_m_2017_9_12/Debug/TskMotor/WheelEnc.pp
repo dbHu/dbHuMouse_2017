@@ -159,35 +159,17 @@ TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/pa
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/knl/Task.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/knl/Event__epilogue.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi.h
+TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Timer.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi__prologue.h
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/package.defs.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h
+TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/ITimer.h
+TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Timer_TimerProxy.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Hwi_HwiProxy.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi__epilogue.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi__prologue.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/package/package.defs.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h
-TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/BIOS.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi__epilogue.h
-TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Hwi_HwiProxy.h
+TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/ITimer.h
+TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Timer_TimerProxy.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/System.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
 TskMotor/WheelEnc.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
@@ -375,35 +357,17 @@ C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/knl/C
 C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/knl/Task.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/knl/Event__epilogue.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi.h: 
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Timer.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi__prologue.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/package.defs.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h: 
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/ITimer.h: 
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Timer_TimerProxy.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Hwi_HwiProxy.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/Hwi__epilogue.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi__prologue.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/package/package.defs.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h: 
-C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/BIOS.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/IHwi.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/family/arm/m3/Hwi__epilogue.h: 
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Hwi_HwiProxy.h: 
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/interfaces/ITimer.h: 
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/sysbios/hal/package/Timer_TimerProxy.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/System.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h: 

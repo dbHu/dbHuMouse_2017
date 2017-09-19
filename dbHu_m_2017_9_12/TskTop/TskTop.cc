@@ -534,8 +534,6 @@ void task(UArg arg0, UArg arg1)
     Task_sleep(100);
     SetLeds(0x04);
     Task_sleep(100);
-    SetLeds(0x08);
-    Task_sleep(100);
     SetLeds(0x00);
 
     DbgUartPutLine("Hello from dbmouse!\t\n", true);
@@ -558,7 +556,7 @@ void task(UArg arg0, UArg arg1)
 
     while(true)
     {
-   	    Mode = (MouseMode::ModeType)1;
+   	    Mode = (MouseMode::ModeType)2;
         // Mode = (MouseMode::ModeType)(lroundf(TskMotor::DistanceAcc * 100.f) & 15);
         // if(Mode != lastMode)
         // {

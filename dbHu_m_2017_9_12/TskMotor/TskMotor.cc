@@ -147,13 +147,13 @@ void task(UArg arg0, UArg arg1)
     MotorPwmInit();
 
     //TODO
-    // initial qei
-     WheelEncInit();
+    // initial BaseTime
+    BaseTimeInit();
     
     // initial imu
     ImuInit();
     // imu start 1st read
-    ImuStartRead();
+    //ImuStartRead();
     Task_sleep(2);
 
     ////////////////////////////////
