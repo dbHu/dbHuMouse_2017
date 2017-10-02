@@ -288,6 +288,7 @@ void task(UArg arg0, UArg arg1)
 #elif(IrApproxOrder == 2)
 #endif
 
+    //TODO
     IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (250 | (285 << 16));
     IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (250 | (285 << 16));
     IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (150 << 16));
@@ -296,7 +297,6 @@ void task(UArg arg0, UArg arg1)
 //	IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (229 | (273 << 16));
 //	IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (140 << 16));
 //	IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (100 | (140 << 16));
-    IrBins.Fwd   = 0; IrBinThs.Fwd.Th   = (250 | (285 << 16));
 
     irDetInit();
 

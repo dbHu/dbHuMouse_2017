@@ -54,6 +54,10 @@ extern "C" {
 #define Board_LED_0                 DBMOUSE_LED_0
 #define Board_LED_1                 DBMOUSE_LED_1
 #define Board_LED_2                 DBMOUSE_LED_2
+#define Board_ENCRA                 EK_TM4C1294XL_ENCRA
+#define Board_ENCRB                 EK_TM4C1294XL_ENCRB
+#define Board_ENCLA                 EK_TM4C1294XL_ENCLA
+#define Board_ENCLB                 EK_TM4C1294XL_ENCLB	
 
 #define Board_I2C_IMU               DBMOUSE_I2C_IMU
 

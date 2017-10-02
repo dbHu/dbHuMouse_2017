@@ -14,7 +14,11 @@ extern "C" {
  *  @brief  Enum of GPIO names on the DBMOUSE dev board
  */
 typedef enum DBMOUSE_GPIOName{
-    DBMOUSE_IR_FL = 0,  // ir_fl must be 0
+    EK_TM4C1294XL_ENCRA = 0,
+    EK_TM4C1294XL_ENCRB,
+    EK_TM4C1294XL_ENCLA,
+    EK_TM4C1294XL_ENCLB,
+    DBMOUSE_IR_FL,  // ir_fl must be 0
     DBMOUSE_IR_FR,      // order must remain no change
     DBMOUSE_IR_SL,      // cuz some routines depends on these.
     DBMOUSE_IR_SR,

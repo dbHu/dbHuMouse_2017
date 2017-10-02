@@ -135,22 +135,28 @@ void irMonitor()
 
     while(true)
     {
-        if(!(i++ & 0xf))
-        {
-            DbgUartPutLine( "\n AvgFwd:b\t   LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\t slInt\t srInt\n", true);
-        }
-        sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\t%4d\t%4d\n",
-                .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
-                TskIr::IrDists.FLns, TskIr::IrBins.FLns,
-                TskIr::IrDists.FRns, TskIr::IrBins.FRns,
-                TskIr::IrDists.LS, TskIr::IrBins.LS,
-                TskIr::IrDists.RS, TskIr::IrBins.RS,
-                TskIr::IrYaw.byLS * 180.f / 3.1415927f,
-                TskIr::IrYaw.byRS * 180.f / 3.1415927f,
-                TskIr::IrYaw.byFLR * 180.f / 3.1415927f,
-				TskIr::IrInts.sl,
-				TskIr::IrInts.sr
-        );
+//        if(!(i++ & 0xf))
+//        {
+//            DbgUartPutLine( "\n AvgFwd:b\t   LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\t slInt\t srInt\n", true);
+//        }
+//        sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\t%4d\t%4d\n",
+//                .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
+//                TskIr::IrDists.FLns, TskIr::IrBins.FLns,
+//                TskIr::IrDists.FRns, TskIr::IrBins.FRns,
+//                TskIr::IrDists.LS, TskIr::IrBins.LS,
+//                TskIr::IrDists.RS, TskIr::IrBins.RS,
+//                TskIr::IrYaw.byLS * 180.f / 3.1415927f,
+//                TskIr::IrYaw.byRS * 180.f / 3.1415927f,
+//                TskIr::IrYaw.byFLR * 180.f / 3.1415927f,
+//				TskIr::IrInts.sl,
+//				TskIr::IrInts.sr
+//        );
+    	sprintf(dbgStr,"%4d\t%4d\t%4d\t%4d\r\n",
+    			TskIr::IrInts.fl,
+    			TskIr::IrInts.fr,
+    			TskIr::IrInts.sl,
+    			TskIr::IrInts.sr
+		);
 //		if(!(i++ & 0xf))
 //		{
 //			DbgUartPutLine( "\nLFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t\n", true);
@@ -550,13 +556,14 @@ void task(UArg arg0, UArg arg1)
     Task_sleep(500);
     DbgUartPutLine("Roll wheel to change mode...\n", true);
 
-    MouseMode::ModeType lastMode = Mode = MouseMode::Idle;
+    MouseMode::ModeType Mode = MouseMode::Idle;
     SetLeds(Mode);
     dbgPutModeName(Mode);
 
     while(true)
     {
-   	    Mode = (MouseMode::ModeType)2;
+    	irMonitor();
+   	    //Mode = (MouseMode::ModeType)2;
         // Mode = (MouseMode::ModeType)(lroundf(TskMotor::DistanceAcc * 100.f) & 15);
         // if(Mode != lastMode)
         // {

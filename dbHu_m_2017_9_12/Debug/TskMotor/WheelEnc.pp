@@ -196,6 +196,7 @@ TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-
 TskMotor/WheelEnc.obj: ../TskMotor/../dbmouse_chassis.h
 TskMotor/WheelEnc.obj: ../TskMotor/WheelEnc.h
 TskMotor/WheelEnc.obj: ../TskMotor/../physparams.h
+TskMotor/WheelEnc.obj: ../TskMotor/../Board.h
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/tidrivers_tivac_2_16_01_13/packages/ti/drivers/GPIO.h
 
 ../TskMotor/WheelEnc.cc: 
@@ -394,4 +395,5 @@ C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/inc/hw_gpio.h
 ../TskMotor/../dbmouse_chassis.h: 
 ../TskMotor/WheelEnc.h: 
 ../TskMotor/../physparams.h: 
+../TskMotor/../Board.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/tidrivers_tivac_2_16_01_13/packages/ti/drivers/GPIO.h: 

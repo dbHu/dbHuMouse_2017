@@ -149,11 +149,13 @@ void task(UArg arg0, UArg arg1)
     //TODO
     // initial BaseTime
     BaseTimeInit();
+    WheelEncInit();
     
     // initial imu
     ImuInit();
     // imu start 1st read
-    //ImuStartRead();
+    ImuStartRead();
+
     Task_sleep(2);
 
     ////////////////////////////////
@@ -170,7 +172,7 @@ void task(UArg arg0, UArg arg1)
 
         //TODO
         // read encder
-        //EncVel = WheelEncGetVel(EncRVel, EncLVel);
+        EncVel = WheelEncGetVel(EncRVel, EncLVel);
 
         // read gyro, accm
         if(!ImuGetValues(imuVals))

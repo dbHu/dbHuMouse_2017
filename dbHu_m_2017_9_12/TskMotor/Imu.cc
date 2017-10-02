@@ -16,7 +16,7 @@
 
 #include "Imu.h"
 
-const unsigned char Mpu6050Addr = 0x69;
+const unsigned char Imu20608Addr = 0x69;
 
 I2C_Handle iicImu;
 I2C_Params iicImuParams;
@@ -102,7 +102,7 @@ void ImuInit()
     if (iicImu == NULL)
         System_abort("Error Initializing IicImu!\n");
 
-    iicTrans.slaveAddress = Mpu6050Addr;
+    iicTrans.slaveAddress = Imu20608Addr;
     iicTrans.writeBuf = imuInitSeq1;
     iicTrans.writeCount = 2;
     iicTrans.readBuf = NULL;
@@ -133,7 +133,7 @@ void ImuInit()
 //        System_abort("Pend semIicFinish Failed!\n");
     ////////////////////////////////
 
-    iicTrans.slaveAddress = Mpu6050Addr;
+    iicTrans.slaveAddress = Imu20608Addr;
     iicTrans.writeBuf = imuReadSeq;
     iicTrans.writeCount = 1;
     iicTrans.readBuf = imuData.buf;

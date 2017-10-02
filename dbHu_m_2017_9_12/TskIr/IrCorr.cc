@@ -244,7 +244,7 @@ void doIrCorrection()
 //    float rfDist[8]; float rfInts[8]; int rfIdx = 0;
 
     float distZero;
-    float aim;
+    int aim;
 
     DbgUartPutLine("Arrange walls like this:\n", true);
     DbgUartPutLine("\t+---+---+\n", true);
@@ -255,32 +255,32 @@ void doIrCorrection()
     DbgUartPutLine("Place mouse at the begining of center line.\n\tTouch Ir when ready.\n", true);
     WaitIrTouch(IrCh::FL | IrCh::FR, 1500, 1000);
     Task_sleep(750);
-    DbgUartPutLine("Push mouse forward gentlely.\n", true);
+    DbgUartPutLine("Place two walls every time.\n", true);
     Task_sleep(250);
-    distZero = TskMotor::DistanceAcc;
 //    for(aim = 0.f; aim < .221f; aim += 0.03f)   // 9 times
-    for(aim = 0.06f; aim < .221f; aim += 0.02f)   // 9 times
+    for(aim = 0; aim < 9; aim++)   // 9 times
     {
-        while(TskMotor::DistanceAcc - distZero < aim)
-            Task_sleep(1);
-        frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - (TskMotor::DistanceAcc - distZero);
+        // while(TskMotor::DistanceAcc - distZero < aim)
+        //     Task_sleep(1);
+        WaitIrTouch(IrCh::FL | IrCh::FR, 1500, 1000);
+        frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - 3 * PP::WallThick;
         flnsInts[flnsIdx] = IrInts.fl;
         frnsInts[frnsIdx] = IrInts.fr;
 //        if(TskMotor::DistanceAcc - distZero < 0.061f)   // 3 times
-        if(TskMotor::DistanceAcc - distZero < 0.07f)   // once
+        if(aim < 3)   // once
         {
             rsDist[rsIdx] = lsDist[lsIdx] = PP::GridSize - PP::WallThick / 2.0f - PP::IrSSide;
             lsInts[lsIdx] = IrInts.sl;
             rsInts[rsIdx] = IrInts.sr;
         }
-        sprintf(dbgStr, "Pushed %3dmm:\n", (int)((TskMotor::DistanceAcc - distZero) * 1000.0f + 0.5f));
+        sprintf(dbgStr, "Place %2d walls:\n", aim * 2);
         DbgUartPutLine(dbgStr, true);
         sprintf(dbgStr, "\tFLns[%2d] = %4d @%3dmm\n", flnsIdx, (int)flnsInts[flnsIdx], (int)(0.5f + 1000.0f * flnsDist[flnsIdx]));
         DbgUartPutLine(dbgStr, true);
         sprintf(dbgStr, "\tFRns[%2d] = %4d @%3dmm\n", frnsIdx, (int)frnsInts[frnsIdx], (int)(0.5f + 1000.0f * frnsDist[frnsIdx]));
         DbgUartPutLine(dbgStr, true);
         flnsIdx++;frnsIdx++;
-        if(TskMotor::DistanceAcc - distZero < 0.061f)   // 3 times
+        if(aim < 3)   // 3 times
         {
             sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
             DbgUartPutLine(dbgStr, true);

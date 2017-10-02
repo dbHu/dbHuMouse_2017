@@ -167,6 +167,17 @@ void DBMOUSE_initGeneral(void)
  *       reduce memory usage.
  */
 GPIO_PinConfig gpioPinConfigs[] = {
+
+        /*
+         *PE4 ENCRA  
+         *PB5 ENCRB  
+         *PK0 ENCLA  
+         *PK1 ENCLB 
+         */
+        GPIOTiva_PE_4 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PB_5 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PK_0 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PK_1 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
         //    DBMOUSE_IR_FL
         GPIOTiva_PE_1 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_FR

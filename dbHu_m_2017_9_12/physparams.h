@@ -28,13 +28,13 @@ const float Mu =     0.70f; // 0.72f comment @2015-09-16 17:17
 const float g =      9.80665f;
 
 // gravity center height
-const float H =      0.002f;
+const float H =      0.005f;
 
 // half of distance between 2 tires
-const float W =      0.032f;
+const float W =      0.0185f;
 
 // wheel
-const float RWheel = 0.01175f;
+const float RWheel = 0.0063f;
 
 // system sampling period, DO NOT change this independently
 // if Ts changed, consider:
@@ -47,51 +47,51 @@ const float Ts =     0.001f;
 
 //================ geometry informations
 // gravity center to the center of 4 wheels
-const float GvCenterFwd =   0.000f;
+const float GvCenterFwd =   -0.005f;
 
 // all geometry of mouse related to GRAVITY CENTER
-const float BodyLength =   0.087f;
-const float BodyWidth =    0.054f;
-const float HeadFwd =       (0.064f - GvCenterFwd);
+const float BodyLength =   0.041f;
+const float BodyWidth =    0.037f;
+const float HeadFwd =       (0.0228f - GvCenterFwd);
 // geometry center forward
 const float GeoFwd =        (0.000f - GvCenterFwd);
 // !!! straight segment must be no less then 2x GeoFwd !!!
 // tail
-const float TailBack =      (0.033f + GvCenterFwd);
+const float TailBack =      (0.0182f + GvCenterFwd);
 
 // ir position related to gravity center
 // forward ir forward dist to gravity center, approx
-const float IrFFwd =        (0.0355f - GvCenterFwd);
+const float IrFFwd =        (0.0157f - GvCenterFwd);
 // side ir forward dist to gravity center, approx
-const float IrSFwd =        (0.0405f - GvCenterFwd);
+const float IrSFwd =        (0.0148f - GvCenterFwd);
 
 // forward ir side dist to gravity center, approx
-const float IrFSide =        0.0275f;
+const float IrFSide =        0.0145f;
 // side ir side dist to gravity center, approx
-const float IrSSide =        0.012f;
+const float IrSSide =        0.0083f;
 
-const float IrFwdLRDist =  0.055f;
+const float IrFwdLRDist =  0.029f;
 
 const float IrSizeAngle =  (60.f / 180.0f * 3.1415926536f);     //side ir angle
 
 // grids
-const float GridSize =         0.180f;
-const float WallThick =        0.012f;
+const float GridSize =         0.090f;
+const float WallThick =        0.006f;
 const float CenterToWall =     ((GridSize - WallThick) / 2.0f);
 const float StartTotalDist =   (GridSize - WallThick / 2.0f - TailBack);
-const float StartAcclDist =    0.030f;
+const float StartAcclDist =    0.015f;
 const float StopTotalDist =    (GridSize / 2.0f);
-const float StopAccDist =      0.040f;
+const float StopAccDist =      0.020f;
 const float RestartDist =      (GridSize / 2.0f);
 
 //================ end geometry infos
 
 //================ the dist to get wall info
-const float GetWallDist =  0.01f;
+const float GetWallDist =  0.005f;
 //================
 //================ action speeds & etc.
 const int SeqArrayLen    = 512;
-const float SearchSpeed    = 0.6f;	//0.36f comment @20150916 17:18
+const float SearchSpeed    = 0.36f;	//0.36f comment @20150916 17:18
 //================
 
 }
