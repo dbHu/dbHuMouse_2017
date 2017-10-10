@@ -18,12 +18,12 @@ class MouseMode
 public:
     enum ModeType
     {
-        Idle = 0,
+    	Idle = 0,
+		PhysparamCorr,
         EncImuMonitor,
         IrMonitor,
         IrCorrection,
-        MotionCorrection,
-        ListenUartCmd,
+        UartCmd,
 		ActionTest,
 		SolveTest,
         Undef1,
@@ -37,9 +37,10 @@ public:
     };
 };
 
+extern int info_flag;
 extern Mailbox_Handle MbCmd;
 extern volatile MouseMode::ModeType Mode;
-extern char dbgStr[80];
+extern char dbgStr[100];
 void Init();
 void SetLeds(unsigned char val);
 

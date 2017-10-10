@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../mouse/mouse.cc 
+CPP_SRCS += \
+../mouse/mouse.cpp 
 
 OBJS += \
 ./mouse/mouse.obj 
 
-CC_DEPS += \
-./mouse/mouse.pp 
+CPP_DEPS += \
+./mouse/mouse.d 
 
 OBJS__QUOTED += \
 "mouse\mouse.obj" 
 
-CC_DEPS__QUOTED += \
-"mouse\mouse.pp" 
+CPP_DEPS__QUOTED += \
+"mouse\mouse.d" 
 
-CC_SRCS__QUOTED += \
-"../mouse/mouse.cc" 
+CPP_SRCS__QUOTED += \
+"../mouse/mouse.cpp" 
 
 

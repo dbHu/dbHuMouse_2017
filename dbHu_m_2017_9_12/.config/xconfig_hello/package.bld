@@ -1,6 +1,6 @@
 /* THIS IS A GENERATED FILE -- DO NOT EDIT */
 
-var targ = xdc.module('ti.targets.arm.elf.M4F');
+var targ = xdc.module('gnu.targets.arm.M4F');
 /* configuro was told the platform explicitly */
 var platform = 'ti.platforms.tiva:TM4C1294NCPDT';
 

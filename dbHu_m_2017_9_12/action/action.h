@@ -8,11 +8,14 @@
 #ifndef MOTION_H_
 #define MOTION_H_
 
+#include "../physparams.h"
+#include <ti/sysbios/knl/Mailbox.h>
 
 //#ifdef __cplusplus
 //extern "C"
 //{
 //#endif /* __cplusplus */
+
 
 namespace TskAction{
 
@@ -94,23 +97,20 @@ public: enum ActType
     };
 };
 
-struct Info
-{
-	float inf[512];
-	int cnt;
-};
-
-extern Info info;
-
 extern Mailbox_Handle MbCmd;
 
-extern volatile float Info_LV[512];
+extern float v_s[512],o_s[512];
+extern volatile float Info[512],Desire[512];
 
 int MotionCalcFwd(float v0, float v1, float s, float *vs);
 int MotionCalcTurn(float v, float ang, float mu, float *omgs, float *requ);
 
 void Init();
 }
+
+extern RushParam   SP;
+extern SeachParam  CP;
+
 //#ifdef __cplusplus
 //}
 //#endif /* __cplusplus */

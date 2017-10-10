@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../Queue/Queue.cc 
+CPP_SRCS += \
+../Queue/Queue.cpp 
 
 OBJS += \
 ./Queue/Queue.obj 
 
-CC_DEPS += \
-./Queue/Queue.pp 
+CPP_DEPS += \
+./Queue/Queue.d 
 
 OBJS__QUOTED += \
 "Queue\Queue.obj" 
 
-CC_DEPS__QUOTED += \
-"Queue\Queue.pp" 
+CPP_DEPS__QUOTED += \
+"Queue\Queue.d" 
 
-CC_SRCS__QUOTED += \
-"../Queue/Queue.cc" 
+CPP_SRCS__QUOTED += \
+"../Queue/Queue.cpp" 
 
 

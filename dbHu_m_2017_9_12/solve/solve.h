@@ -8,6 +8,8 @@
 #ifndef SOLVE_SOLVE_H_
 #define SOLVE_SOLVE_H_
 
+#include "../Queue/Queue.h"
+
 namespace solve
 {
 class Solve

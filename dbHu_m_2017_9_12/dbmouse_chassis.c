@@ -36,7 +36,7 @@
  *  DBMOUSE board.
  */
 
-#include <dbmouse_chassis.h>
+#include "dbmouse_chassis.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -168,16 +168,6 @@ void DBMOUSE_initGeneral(void)
  */
 GPIO_PinConfig gpioPinConfigs[] = {
 
-        /*
-         *PE4 ENCRA  
-         *PB5 ENCRB  
-         *PK0 ENCLA  
-         *PK1 ENCLB 
-         */
-        GPIOTiva_PE_4 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PB_5 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PK_0 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PK_1 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
         //    DBMOUSE_IR_FL
         GPIOTiva_PE_1 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_FR
@@ -186,12 +176,24 @@ GPIO_PinConfig gpioPinConfigs[] = {
         GPIOTiva_PE_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
         //    DBMOUSE_IR_SR
         GPIOTiva_PD_7 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW,
+		/*
+         *PE4 ENCRA
+         *PB5 ENCRB
+         *PK0 ENCLA
+         *PK1 ENCLB
+         */
+        GPIOTiva_PE_4 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PB_5 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PK_0 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+        GPIOTiva_PK_1 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+
         /* DBMOUSE_LED_0 R*/
         GPIOTiva_PD_2 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
         /* DBMOUSE_LED_1 G*/
         GPIOTiva_PD_3 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
         /* DBMOUSE_LED_2 B*/
         GPIOTiva_PQ_0 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
+
 };
 
 /*

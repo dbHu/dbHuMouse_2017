@@ -5,13 +5,13 @@
  *      Author: loywong
  */
 
-#include "../physparams.h"
+#include "../action/action.h"
 
 #ifndef MOTORENCIMU_IMU_H_
 #define MOTORENCIMU_IMU_H_
 
-const float GyroUnit = 1.0642252e-3f * CP::GyroUnitCompensation;  // rad/s/LSB @ fs=2000deg/s
-const float AcclUnit = 5.9855042e-4f * CP::AcclUnitCompensation;  // m/sq.s/LSB @ fs=2g
+const float GyroUnit = 1.0642252e-3f * PP::GyroUnitCompensation;  // rad/s/LSB @ fs=2000deg/s
+const float AcclUnit = 5.9855042e-4f * PP::AcclUnitCompensation;  // m/sq.s/LSB @ fs=2g
 
 typedef struct __ImuValues
 {

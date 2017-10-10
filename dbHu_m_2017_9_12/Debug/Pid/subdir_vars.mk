@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../Pid/Pid.cc 
+CPP_SRCS += \
+../Pid/Pid.cpp 
 
 OBJS += \
 ./Pid/Pid.obj 
 
-CC_DEPS += \
-./Pid/Pid.pp 
+CPP_DEPS += \
+./Pid/Pid.d 
 
 OBJS__QUOTED += \
 "Pid\Pid.obj" 
 
-CC_DEPS__QUOTED += \
-"Pid\Pid.pp" 
+CPP_DEPS__QUOTED += \
+"Pid\Pid.d" 
 
-CC_SRCS__QUOTED += \
-"../Pid/Pid.cc" 
+CPP_SRCS__QUOTED += \
+"../Pid/Pid.cpp" 
 
 

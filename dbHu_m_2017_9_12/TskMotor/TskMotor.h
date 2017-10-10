@@ -51,19 +51,17 @@ struct VelOmega
 //    }
 };
 
-
 extern volatile float EncLVel;
 extern volatile float EncRVel;
 extern volatile float EncVel; // avg velocity from 2 encoders
-extern volatile float GyroZZero, AcclYZero;
-extern volatile float AcclY, GyroZ; // y-axis acceleration & z-axis angular velocity from IMU
+extern volatile float GyroZZero, AcclXZero;
+extern volatile float AcclX, GyroZ; // y-axis acceleration & z-axis angular velocity from IMU
 extern volatile float LV, AV;   // lv & av feedback for PIDs
-extern volatile float DistanceAcc,AngleAcc,DistanceAcc_en;
+extern volatile float DistanceAcc,AngleAcc,DistanceAcc_en,DesireDistance;
 extern volatile float CurrentV;	// Current Desired Linear Velocity
 
 extern Mailbox_Handle MbCmd;
 extern Queue<VelOmega> *QMotor;
-
 void Init();
 
 }

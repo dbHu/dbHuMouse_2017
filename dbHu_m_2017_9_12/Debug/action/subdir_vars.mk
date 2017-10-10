@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../action/action.cc 
+CPP_SRCS += \
+../action/action.cpp 
 
 OBJS += \
 ./action/action.obj 
 
-CC_DEPS += \
-./action/action.pp 
+CPP_DEPS += \
+./action/action.d 
 
 OBJS__QUOTED += \
 "action\action.obj" 
 
-CC_DEPS__QUOTED += \
-"action\action.pp" 
+CPP_DEPS__QUOTED += \
+"action\action.d" 
 
-CC_SRCS__QUOTED += \
-"../action/action.cc" 
+CPP_SRCS__QUOTED += \
+"../action/action.cpp" 
 
 

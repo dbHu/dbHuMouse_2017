@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../solve/solve.cc 
+CPP_SRCS += \
+../solve/solve.cpp 
 
 OBJS += \
 ./solve/solve.obj 
 
-CC_DEPS += \
-./solve/solve.pp 
+CPP_DEPS += \
+./solve/solve.d 
 
 OBJS__QUOTED += \
 "solve\solve.obj" 
 
-CC_DEPS__QUOTED += \
-"solve\solve.pp" 
+CPP_DEPS__QUOTED += \
+"solve\solve.d" 
 
-CC_SRCS__QUOTED += \
-"../solve/solve.cc" 
+CPP_SRCS__QUOTED += \
+"../solve/solve.cpp" 
 
 

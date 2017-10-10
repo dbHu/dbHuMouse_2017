@@ -70,18 +70,40 @@ package.mak: C:/ti/xdctools_3_32_00_06_core/packages/xdc/bld/ITargetFilter.xs
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/bld/package.xs:
 package.mak: C:/ti/xdctools_3_32_00_06_core/packages/xdc/bld/package.xs
 package.mak: config.bld
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/ITarget.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/ITarget.xs
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/C28_large.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/C28_large.xs
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/C28_float.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/C28_float.xs
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/package.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/package.xs
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/arm/elf/IArm.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/arm/elf/IArm.xs
-C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/arm/elf/package.xs:
-package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/arm/elf/package.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/ITarget.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/ITarget.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/_utils.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/_utils.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/Linux86.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/Linux86.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/Mingw.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/Mingw.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/package.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/package.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/ITarget.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/ITarget.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/GCArmv6.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/GCArmv6.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/GCArmv7A.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/GCArmv7A.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/IM.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/IM.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M3.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M3.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M4.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M4.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M4F.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/M4F.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A8F.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A8F.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A9F.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A9F.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A15F.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A15F.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A53F.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/A53F.xs
+C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/package.xs:
+package.mak: C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/package.xs
 package.mak: package.bld
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/tools/configuro/template/compiler.opt.xdt:
 package.mak: C:/ti/xdctools_3_32_00_06_core/packages/xdc/tools/configuro/template/compiler.opt.xdt
@@ -97,23 +119,23 @@ C:/ti/xdctools_3_32_00_06_core/packages/xdc/tools/configuro/template/package.xs.
 package.mak: C:/ti/xdctools_3_32_00_06_core/packages/xdc/tools/configuro/template/package.xs.xdt
 endif
 
-ti.targets.arm.elf.M4F.rootDir ?= C:/ti/ccsv6/tools/compiler/ti-cgt-arm_16.6.0.STS
-ti.targets.arm.elf.packageBase ?= C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/ti/targets/arm/elf/
-.PRECIOUS: $(XDCCFGDIR)/%.oem4f
-.PHONY: all,em4f .dlls,em4f .executables,em4f test,em4f
-all,em4f: .executables,em4f
-.executables,em4f: .libraries,em4f
-.executables,em4f: .dlls,em4f
-.dlls,em4f: .libraries,em4f
-.libraries,em4f: .interfaces
+gnu.targets.arm.M4F.rootDir ?= C:/ti/ccsv7/tools/compiler/gcc-arm-none-eabi-4_9-2015q3
+gnu.targets.arm.packageBase ?= C:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm/
+.PRECIOUS: $(XDCCFGDIR)/%.om4fg
+.PHONY: all,m4fg .dlls,m4fg .executables,m4fg test,m4fg
+all,m4fg: .executables,m4fg
+.executables,m4fg: .libraries,m4fg
+.executables,m4fg: .dlls,m4fg
+.dlls,m4fg: .libraries,m4fg
+.libraries,m4fg: .interfaces
 	@$(RM) $@
 	@$(TOUCH) "$@"
 
 .help::
-	@$(ECHO) xdc test,em4f
-	@$(ECHO) xdc .executables,em4f
-	@$(ECHO) xdc .libraries,em4f
-	@$(ECHO) xdc .dlls,em4f
+	@$(ECHO) xdc test,m4fg
+	@$(ECHO) xdc .executables,m4fg
+	@$(ECHO) xdc .libraries,m4fg
+	@$(ECHO) xdc .dlls,m4fg
 
 
 all: .executables 
@@ -128,74 +150,72 @@ package/%.xdc.inc package/%_xconfig_hello.c package/%.defs.h: %.xdc $(PKGCFGS)
 	@$(MSG) generating interfaces for package xconfig_hello" (because $@ is older than $(firstword $?))" ...
 	$(XSRUN) -f xdc/services/intern/cmd/build.xs $(MK_IDLOPTS) -m package/package.xdc.dep -i package/package.xdc.inc package.xdc
 
-.dlls,em4f .dlls: hello.pem4f
+.dlls,m4fg .dlls: hello.pm4fg
 
--include package/cfg/hello_pem4f.mak
--include package/cfg/hello_pem4f.cfg.mak
+-include package/cfg/hello_pm4fg.mak
+-include package/cfg/hello_pm4fg.cfg.mak
 ifeq (,$(MK_NOGENDEPS))
--include package/cfg/hello_pem4f.dep
+-include package/cfg/hello_pm4fg.dep
 endif
-hello.pem4f: package/cfg/hello_pem4f.xdl
+hello.pm4fg: package/cfg/hello_pm4fg.xdl
 	@
 
 
-ifeq (,$(wildcard .libraries,em4f))
-hello.pem4f package/cfg/hello_pem4f.c: .libraries,em4f
+ifeq (,$(wildcard .libraries,m4fg))
+hello.pm4fg package/cfg/hello_pm4fg.c: .libraries,m4fg
 endif
 
-package/cfg/hello_pem4f.c package/cfg/hello_pem4f.h package/cfg/hello_pem4f.xdl: override _PROG_NAME := hello.xem4f
-package/cfg/hello_pem4f.c: package/cfg/hello_pem4f.cfg
-package/cfg/hello_pem4f.xdc.inc: package/cfg/hello_pem4f.xdl
-package/cfg/hello_pem4f.xdl package/cfg/hello_pem4f.c: .interfaces
+package/cfg/hello_pm4fg.c package/cfg/hello_pm4fg.h package/cfg/hello_pm4fg.xdl: override _PROG_NAME := hello.xm4fg
+package/cfg/hello_pm4fg.c: package/cfg/hello_pm4fg.cfg
+package/cfg/hello_pm4fg.xdc.inc: package/cfg/hello_pm4fg.xdl
+package/cfg/hello_pm4fg.xdl package/cfg/hello_pm4fg.c: .interfaces
 
-clean:: clean,em4f
-	-$(RM) package/cfg/hello_pem4f.cfg
-	-$(RM) package/cfg/hello_pem4f.dep
-	-$(RM) package/cfg/hello_pem4f.c
-	-$(RM) package/cfg/hello_pem4f.xdc.inc
+clean:: clean,m4fg
+	-$(RM) package/cfg/hello_pm4fg.cfg
+	-$(RM) package/cfg/hello_pm4fg.dep
+	-$(RM) package/cfg/hello_pm4fg.c
+	-$(RM) package/cfg/hello_pm4fg.xdc.inc
 
-clean,em4f::
-	-$(RM) hello.pem4f
-.executables,em4f .executables: hello.xem4f
+clean,m4fg::
+	-$(RM) hello.pm4fg
+.executables,m4fg .executables: hello.xm4fg
 
-hello.xem4f: |hello.pem4f
+hello.xm4fg: |hello.pm4fg
 
--include package/cfg/hello.xem4f.mak
-hello.xem4f: package/cfg/hello_pem4f.oem4f 
+-include package/cfg/hello.xm4fg.mak
+hello.xm4fg: package/cfg/hello_pm4fg.om4fg 
 	$(RM) $@
-	@$(MSG) lnkem4f $@ ...
-	$(RM) $(XDCCFGDIR)/$@.map
-	$(ti.targets.arm.elf.M4F.rootDir)/bin/armcl -fs $(XDCCFGDIR)$(dir $@). -q -u _c_int00 --silicon_version=7M4 -z --strict_compatibility=on  -o $@ package/cfg/hello_pem4f.oem4f   package/cfg/hello_pem4f.xdl  -w -c -m $(XDCCFGDIR)/$@.map -l $(ti.targets.arm.elf.M4F.rootDir)/lib/libc.a
+	@$(MSG) lnkm4fg $@ ...
+	$(RM) $(XDCCFGDIR)$@.map
+	$(gnu.targets.arm.M4F.rootDir)/bin/arm-none-eabi-gcc -mthumb -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -Wl,-static -Wl,--gc-sections     -LC:/ti/tirtos_tivac_2_16_01_14/products/bios_6_45_02_31/packages/gnu/targets/arm//libs/install-native/arm-none-eabi/lib/armv7e-m/fpu  -o $@ package/cfg/hello_pm4fg.om4fg -Wl,-T,package/cfg/hello_pm4fg.xdl   -Wl,--start-group -lgcc -lc -lm -Wl,--end-group -Wl,-Map=$(XDCCFGDIR)/$@.map -Wl,--start-group -lnosys -Wl,--end-group
 	
-hello.xem4f: export C_DIR=
-hello.xem4f: PATH:=$(ti.targets.arm.elf.M4F.rootDir)/bin/;$(PATH)
-hello.xem4f: Path:=$(ti.targets.arm.elf.M4F.rootDir)/bin/;$(PATH)
+hello.xm4fg: export LD_LIBRARY_PATH=
 
-hello.test test,em4f test: hello.xem4f.test
+hello.test test,m4fg test: hello.xm4fg.test
 
-hello.xem4f.test:: hello.xem4f
+hello.xm4fg.test:: hello.xm4fg
 ifeq (,$(_TESTLEVEL))
-	@$(MAKE) -R -r --no-print-directory -f $(XDCROOT)/packages/xdc/bld/xdc.mak _TESTLEVEL=1 hello.xem4f.test
+	@$(MAKE) -R -r --no-print-directory -f $(XDCROOT)/packages/xdc/bld/xdc.mak _TESTLEVEL=1 hello.xm4fg.test
 else
 	@$(MSG) running $<  ...
-	$(call EXEC.hello.xem4f, ) 
+	$(call EXEC.hello.xm4fg, ) 
 endif
 
-clean,em4f::
-	-$(RM) $(wildcard .tmp,hello.xem4f,*)
+clean,m4fg::
+	-$(RM) $(wildcard .tmp,hello.xm4fg,*)
 
 
-clean:: clean,em4f
+clean:: clean,m4fg
 
-clean,em4f::
-	-$(RM) hello.xem4f
+clean,m4fg::
+	-$(RM) hello.xm4fg
 %,copy:
 	@$(if $<,,$(MSG) don\'t know how to build $*; exit 1)
 	@$(MSG) cp $< $@
 	$(RM) $@
 	$(CP) $< $@
-hello_pem4f.oem4f,copy : package/cfg/hello_pem4f.oem4f
-hello_pem4f.sem4f,copy : package/cfg/hello_pem4f.sem4f
+hello_pm4fg.om4fg,copy : package/cfg/hello_pm4fg.om4fg
+hello_pm4fg.sm4fg,copy : package/cfg/hello_pm4fg.sm4fg
 
 $(XDCCFGDIR)%.c $(XDCCFGDIR)%.h $(XDCCFGDIR)%.xdl: $(XDCCFGDIR)%.cfg $(XDCROOT)/packages/xdc/cfg/Main.xs | .interfaces
 	@$(MSG) "configuring $(_PROG_NAME) from $< ..."

@@ -2,23 +2,25 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
+SHELL = cmd.exe
+
 # Add inputs and outputs from these tool invocations to the build variables 
-CC_SRCS += \
-../mmaze/mmaze.cc 
+CPP_SRCS += \
+../mmaze/mmaze.cpp 
 
 OBJS += \
 ./mmaze/mmaze.obj 
 
-CC_DEPS += \
-./mmaze/mmaze.pp 
+CPP_DEPS += \
+./mmaze/mmaze.d 
 
 OBJS__QUOTED += \
 "mmaze\mmaze.obj" 
 
-CC_DEPS__QUOTED += \
-"mmaze\mmaze.pp" 
+CPP_DEPS__QUOTED += \
+"mmaze\mmaze.d" 
 
-CC_SRCS__QUOTED += \
-"../mmaze/mmaze.cc" 
+CPP_SRCS__QUOTED += \
+"../mmaze/mmaze.cpp" 
 
 

@@ -20,12 +20,12 @@
     </makefiles>
     <targets>
         <target name="ti.targets.arm.elf.M4F"
-            version="ti.targets.arm.elf.M4F{1,0,16.6,0"
-            rawVersion="16.6.0"
+            version="ti.targets.arm.elf.M4F{1,0,16.9,1"
+            rawVersion="16.9.1"
             platform="ti.platforms.tiva:TM4C1294NCPDT:1"
             isa="v7M4"
             suffix="em4f"
-            rootDir="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_16.6.0.STS"
+            rootDir="C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS"
             os="undefined"
             rts="ti.targets.arm.rtsarm">
             <model endian="little"
