@@ -203,9 +203,9 @@ void task(UArg arg0, UArg arg1)
         {
             // read dlv&dav from fifo
             QMotor->De(desire); // dequeue, if empty desire will not change
-//            if(TskTop::info_flag == 2)
-//                desire.Omega = 10.f;
-//            else if(TskTop::info_flag == 1) desire.Velocity = 0.2f;
+            if(TskTop::info_flag == 2)
+               desire.Omega = 10.f;
+            else if(TskTop::info_flag == 1) desire.Velocity = 0.2f;
 //            else {
 //                desire.Omega = 0.f;
 //                desire.Velocity = 0.f;

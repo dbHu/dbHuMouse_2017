@@ -56,9 +56,7 @@ Mailbox_Handle MbCmd;
 #define SIDEIR_CORR_PID_D   0.f
 #define SIDEIR_CORR_PID_N   0.f
 
-#define CORR_FWDEND_DIST_NW2W (cur_wall.right? CP.LFWDEND_DIST_NW2W : CP.RFWDEND_DIST_NW2W)
 #define CORR_BACKCENTER_ADJ (wall->left? CP.LBACKCENTER_ADJ : CP.RBACKCENTER_ADJ)
-#define CORR_BACKANGLE_ADJ (wall->left? CP.LBACKANGLE_LRDIFF : CP.RBACKANGLE_LRDIFF)
 Pid *actHDirPid;
 
 WallStatus cur_wall;
@@ -96,7 +94,7 @@ int MotionCalcFwd(float v0, float v1, float s, float *vs)
     float t = s / (v0 + v1);
     float a = (v1*v1-v0*v0)/s;
     int i, imax = t / PP::Ts;
-    int t_a;
+
 //    t_a = Timestamp_get32();
 
     for(i = 1; i <= imax; i++)

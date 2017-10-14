@@ -7,6 +7,7 @@
 #include <xdc/runtime/System.h>
 
 #include <math.h>
+#include <stdio.h>
 
 #include <ti/sysbios/hal/Timer.h>
 #include <ti/sysbios/BIOS.h>
@@ -23,6 +24,7 @@
 
 #include "../TskIr/IrCorr.h"
 #include "../TskIr/TskIr.h"
+#include "../TskTop/DbgUart.h"
 #include "dbmouse_chassis.h"
 #include "TskMotor/WheelEnc.h"
 
@@ -287,8 +289,7 @@ void task(UArg arg0, UArg arg1)
     int staticCnt = 0, staticCntCyced;
     unsigned short irZerosAcc[4] = {0};
 
-    ReadFlash(0x3F400, (unsigned char *)&IrLTs.Dists[0], sizeof(IrLookupTable));
-    ReadFlash(0x3F540, (unsigned char *)&IrACs.k[0], sizeof(IrApproxCoef));
+    ReadFlash(63 * 1024 * 16, (unsigned char *)&IrACs.k[0], sizeof(IrApproxCoef));
     // calc reciprocal of approx coef b, prepare for Ir Distance calculting
 #if(IrApproxOrder == 1)
     for(int i = 0; i < 4; i++)

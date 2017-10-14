@@ -36,13 +36,13 @@
 #include "Board.h"
 #include <ti/sysbios/BIOS.h>
 #include "TskTop/TskTop.h"
-
+#include "TskIr/IrCorr.h"
 #define testflash 0
 /*
  *  ======== main ========
  */
 int main(void)
-{
+ {
 //    Task_Params taskParams;
 //    FPULazyStackingEnable();
 //    FPUEnable();
@@ -71,9 +71,9 @@ int main(void)
 #if testflash
 	unsigned char testStr[10] = {0x01,0x02,0x03,0x04,0x05,0x06,0x00,0x00,0x00,0x00};
 	int a = sizeof(testStr);
-    TskIr::eraseFlashBlock(254);
-    TskIr::programFlash(254 * 1024,(unsigned int*)&testStr[0],sizeof(testStr) / 2);
-    TskIr::ReadFlash(0x3F800,(unsigned char*)&testStr[0],sizeof(testStr));
+    TskIr::eraseFlashBlock(62);
+    TskIr::programFlash(62 * 1024 * 16,(unsigned int*)&testStr[0],sizeof(testStr) / 2);
+    TskIr::ReadFlash(0xF8000,(unsigned char*)&testStr[0],sizeof(testStr));
 #endif
 
     TskTop::Init();

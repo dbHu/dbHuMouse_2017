@@ -24,6 +24,7 @@ ORDERED_OBJS += \
 "./TskMotor/WheelEnc.obj" \
 "./TskTop/DbgUart.obj" \
 "./TskTop/TskTop.obj" \
+"./TskTop/cmd.obj" \
 "./action/action.obj" \
 "./mmaze/mmaze.obj" \
 "./mouse/mouse.obj" \
@@ -195,9 +196,9 @@ dbHu_mouse.hex: $(EXE_OUTPUTS)
 clean:
 	-$(RM) $(GEN_CMDS__QUOTED)$(GEN_MISC_FILES__QUOTED)$(BIN_OUTPUTS__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)$(GEN_OPTS__QUOTED)
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
-	-$(RM) "dbmouse.obj" "dbmouse_chassis.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "action\action.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\solve.obj" 
+	-$(RM) "dbmouse.obj" "dbmouse_chassis.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "TskTop\cmd.obj" "action\action.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\solve.obj" 
 	-$(RM) "dbmouse_chassis.d" 
-	-$(RM) "dbmouse.d" "Kalman\Kalman1Var.d" "Kalman\Kalman2Var.d" "Pid\Pid.d" "Queue\Queue.d" "TskIr\IrCorr.d" "TskIr\TskIr.d" "TskMotor\Imu.d" "TskMotor\MotorPwm.d" "TskMotor\TskMotor.d" "TskMotor\WheelEnc.d" "TskTop\DbgUart.d" "TskTop\TskTop.d" "action\action.d" "mmaze\mmaze.d" "mouse\mouse.d" "solve\solve.d" 
+	-$(RM) "dbmouse.d" "Kalman\Kalman1Var.d" "Kalman\Kalman2Var.d" "Pid\Pid.d" "Queue\Queue.d" "TskIr\IrCorr.d" "TskIr\TskIr.d" "TskMotor\Imu.d" "TskMotor\MotorPwm.d" "TskMotor\TskMotor.d" "TskMotor\WheelEnc.d" "TskTop\DbgUart.d" "TskTop\TskTop.d" "TskTop\cmd.d" "action\action.d" "mmaze\mmaze.d" "mouse\mouse.d" "solve\solve.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

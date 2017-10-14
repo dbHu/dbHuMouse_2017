@@ -396,42 +396,32 @@ struct SeachParam
     // 3 params defines how far will the side ir corr for heading dir effects during diff act
     // after these fwd end corr starts
     float HEADING_BY_SIRSIDE_START_DIST;
-    float HEADING_BY_SIRSIDE_STOP_DIST ;
-    float HEADING_BY_SIRSIDE_FWD_DIST  ;
-    //  HEADING_BY_SIRSIDE_FWD_DIST   = 0.060f;
-
-   // float HEADING_BY_SIRSIDE_FWD_DIST  ;
    // 2 params defines segs where side ir corr for heading dir effects during centipede;
     float HEADING_BY_SIRFWD_BGNSTAT_POS;
     float HEADING_BY_SIRFWD_BEGIN_POS  ;
-    float HEADING_BY_SIRFWD_END_POS;
+    float HEADING_BY_SIRFWD_END_POS;   
+   // params defines distances added at fwd end corr occur;
+    float LFWDEND_DIST_W2NW;
+    float RFWDEND_DIST_W2NW;
+
    //#define HEADING_BY_SIRFWD_B2EHALF_DIST ((HEADING_BY_SIRFWD_END_POS - HEADING_BY_SIRFWD_BEGIN_POS) * 0.5f);
    // left & right turn straight segment when no fwd wall for turnwait;
    // abs of these must be less than GeoFwd;
     float TURNL90_PRE_ADJ;
     float TURNR90_PRE_ADJ;
     float TURNL90_POST_ADJ;
-    float TURNR90_POST_ADJ;
-   // params defines distances added at fwd end corr occur;
-    float LFWDEND_DIST_W2NW;
-    float RFWDEND_DIST_W2NW;
-   //TODO;
-   // params defines distances added at fwd end corr occur;
-    float LFWDEND_DIST_NW2W;
-    float RFWDEND_DIST_NW2W;
-   //#define FWDEND_NW2W_ENABLE    0;
-   //#define FWDEND_DIST_NW2W0.045f;
-    float RESTART_DIST_ADJ;
-    float STOPEND_DIST_ADJ;
-   // turn wait dist adjustment;
+    float TURNR90_POST_ADJ;   
+    // turn wait dist adjustment;
     float TURNLWAIT_DIST_ADJ;
     float TURNRWAIT_DIST_ADJ;
+
+
+    float RESTART_DIST_ADJ;
+
+    float STOPEND_DIST_ADJ;
    // during Act Back;
-    float LBACKANGLE_LRDIFF;
-    float RBACKANGLE_LRDIFF;
-    float LRBACKANGLE_ADJ;
-   // float RBACKANGLE_ADJ ;
     float FWDDISADJ;
+    float LRBACKANGLE_ADJ;
     float FLRYAWERROR;
     float LBACKCENTER_ADJ;
     float RBACKCENTER_ADJ;
@@ -446,18 +436,17 @@ struct SeachParam
 
         //================ action correction parameters
 
-        // 3 params defines how far will the side ir corr for heading dir effects during diff act
+        // params defines how far will the side ir corr for heading dir effects during diff act
         // after these fwd end corr starts
          HEADING_BY_SIRSIDE_START_DIST = 0.030f;
-         HEADING_BY_SIRSIDE_STOP_DIST  = 0.020f;
-         HEADING_BY_SIRSIDE_FWD_DIST   = 0.060f;
-        //  HEADING_BY_SIRSIDE_FWD_DIST   = 0.060f;
 
         // 2 params defines segs where side ir corr for heading dir effects during centipede
          HEADING_BY_SIRFWD_BGNSTAT_POS = 0.010f;
          HEADING_BY_SIRFWD_BEGIN_POS   = 0.120f;
          HEADING_BY_SIRFWD_END_POS= (PP::GridSize * 0.667 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
-        //#define HEADING_BY_SIRFWD_B2EHALF_DIST ((HEADING_BY_SIRFWD_END_POS - HEADING_BY_SIRFWD_BEGIN_POS) * 0.5f)
+        // params defines distances added at fwd end corr occur
+         LFWDEND_DIST_W2NW= 0.06f;
+         RFWDEND_DIST_W2NW= 0.039f;
 
         // left & right turn straight segment when no fwd wall for turnwait
         // abs of these must be less than GeoFwd
@@ -465,26 +454,17 @@ struct SeachParam
          TURNR90_PRE_ADJ  = -0.009f;
          TURNL90_POST_ADJ = -0.006f;
          TURNR90_POST_ADJ = -0.010f;
-        // params defines distances added at fwd end corr occur
-         LFWDEND_DIST_W2NW= 0.06f;
-         RFWDEND_DIST_W2NW= 0.039f;
-        //TODO
-        // params defines distances added at fwd end corr occur
-         LFWDEND_DIST_NW2W= 0.083f;
-         RFWDEND_DIST_NW2W= 0.083f;
-        //#define FWDEND_NW2W_ENABLE    0
-        //#define FWDEND_DIST_NW2W 0.045f
-         RESTART_DIST_ADJ = 0.013f;
-         STOPEND_DIST_ADJ = -0.005f;
+
         // turn wait dist adjustment
          TURNLWAIT_DIST_ADJ    = -0.012f;    // more positive to turn later
          TURNRWAIT_DIST_ADJ    = -0.014f;    // more positive to turn later
-        // during Act Back
-         LBACKANGLE_LRDIFF= 1.02f;    // more positive to skew left more
-         RBACKANGLE_LRDIFF= 1.f;    // more positive to skew left more
+
+         RESTART_DIST_ADJ = 0.013f;
+
+         STOPEND_DIST_ADJ = -0.005f;
+
+         FWDDISADJ = -0.002f;
          LRBACKANGLE_ADJ  = -2.f * PP::PI / 180.f; //
-        //  RBACKANGLE_ADJ   = 4.f * PP::PI / 180.f;
-         FWDDISADJ   = -0.002f;
          FLRYAWERROR = 2.f * PP::PI / 180.f;
          LBACKCENTER_ADJ  = 10.f;   //
          RBACKCENTER_ADJ  = 10.f;   //

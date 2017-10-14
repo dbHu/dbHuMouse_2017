@@ -10,6 +10,7 @@
 
 
 #include <ti/sysbios/knl/Mailbox.h>
+#include "action/action.h"
 namespace TskTop
 {
 
@@ -19,30 +20,29 @@ public:
     enum ModeType
     {
     	Idle = 0,
-		PhysparamCorr,
-        EncImuMonitor,
+		EncImuMonitor,
         IrMonitor,
         IrCorrection,
         UartCmd,
-		ActionTest,
 		SolveTest,
+        ClearMaze,
+        Gaming1,
         Undef1,
         Undef2,
         Undef3,
-		ClearMaze,
         Gaming4,
         Gaming3,
-        Gaming2,
-        Gaming1
+        Gaming2
     };
 };
 
-extern int info_flag;
+extern short info_flag;
 extern Mailbox_Handle MbCmd;
 extern volatile MouseMode::ModeType Mode;
 extern char dbgStr[100];
 void Init();
 void SetLeds(unsigned char val);
+void actPrint(TskAction::Act::ActType act, char *str);
 
 }
 

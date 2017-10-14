@@ -29,12 +29,12 @@ namespace TskIr
 {
 
 #define test_irApproSide 0
-// blkIdx: 0~255
+// blkIdx: 0~63
 void eraseFlashBlock(int blkIdx)
 {
     unsigned int key;
     key = (HWREG(FLASH_BOOTCFG) & FLASH_BOOTCFG_KEY) ? 0xA4420000 : 0x71D50000;
-    HWREG(FLASH_FMA) = blkIdx * 0x40000;
+    HWREG(FLASH_FMA) = blkIdx * 0x4000;
     HWREG(FLASH_FMC) = key | FLASH_FMC_ERASE;
     while(HWREG(FLASH_FMC) & FLASH_FMC_ERASE)
         Task_sleep(1);
@@ -234,279 +234,254 @@ void irApproxSide(float *x, float *y, int n, float *a, float *b)
 
 void doIrCorrection()
 {
-    char dbgStr[128];
-    int i, n;
+    char dbgStr[128],input[10];
+    bool i=0;
+    int n;
+    bool exit_flag = 0;
     float flnsDist[6]; float flnsInts[6]; int flnsIdx = 0;
-//    float flwsDist[8]; float flwsInts[8]; int flwsIdx = 0;
     float frnsDist[6]; float frnsInts[6]; int frnsIdx = 0;
-//    float frwsDist[8]; float frwsInts[8]; int frwsIdx = 0;
     float lsDist[6]; float lsInts[6]; int lsIdx = 0;
-//    float lfDist[8]; float lfInts[8]; int lfIdx = 0;
     float rsDist[6]; float rsInts[6]; int rsIdx = 0;
-//    float rfDist[8]; float rfInts[8]; int rfIdx = 0;
 
-    float distZero;
     int aim;
 
-    DbgUartPutLine("Arrange walls like this:\n", true);
-    DbgUartPutLine("\t+---+---+\n", true);
-    DbgUartPutLine("\t|       |\n", true);
-    DbgUartPutLine("\t+       +\n", true);
-    DbgUartPutLine("\t|   @   |\n", true);
-    DbgUartPutLine("\t+---+---+\n", true);
-    DbgUartPutLine("Place mouse at the begining of center line.\n\tTouch Ir when ready.\n", true);
-    WaitIrTouch(IrCh::SL | IrCh::SR, 2200, 1900);
     GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
-    Task_sleep(1000);
+    
     GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-    DbgUartPutLine("Place four walls four times,then place two walls.\n", true);
 
-//    for(aim = 0.f; aim < .221f; aim += 0.03f)   // 9 times
-    for(aim = 0; aim < 6; aim++)   // 6 times
-    {
-        // while(TskMotor::DistanceAcc - distZero < aim)
-        //     Task_sleep(1);
-        WaitIrTouch(IrCh::SL | IrCh::SR, 2200, 1900);
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        Task_sleep(2000);        
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-//        if(TskMotor::DistanceAcc - distZero < 0.061f)   // 3 times
-        if(aim < 5)   // once
-        {
-            frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - (float)aim * 4.f * PP::WallThick;
+    DbgUartPutLine("input fwd choose FWD Corr\r\n",true);
+    DbgUartPutLine("input side choose SIDE Corr\r\n", true);
+    DbgUartPutLine("input save to SAVE params to flash\r\n", true);
+    DbgUartPutLine("input exit to EXIT correction\r\n", true);
+    while(true){
+        DbgUartPutLine("Please input command...\r\n", true);
+        do{
+            DbgUartGetLine(input);
+        }while(input[0] == '\0');
+
+        if(!strcmp(input,"fwd")){
+            DbgUartPutLine("Arrange walls like this:\r\n", true);
+            DbgUartPutLine("\t+---+---+\n", true);
+            DbgUartPutLine("\t|       |\n", true);
+            DbgUartPutLine("\t+       +\n", true);
+            DbgUartPutLine("\t|   @   |\n", true);
+            DbgUartPutLine("\t+---+---+\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("Place mouse at the begining of center line.\r\n", true);
+            DbgUartPutLine("Place four walls five times\r\n", true);
+            DbgUartPutLine("Touch ir when ready\r\n", true);
+            Task_sleep(10);
+        //    for(aim = 0.f; aim < .221f; aim += 0.03f)   // 9 times
+            for(aim = 0; aim < 6; aim++){
+                // while(TskMotor::DistanceAcc - distZero < aim)
+                //     Task_sleep(1);
+                WaitIrTouch(IrCh::SL | IrCh::SR, 2200, 1900);
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                Task_sleep(2000);        
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+        //        if(TskMotor::DistanceAcc - distZero < 0.061f)   // 3 times
+
+                frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - (float)aim * 4.f * PP::WallThick;
+
+                flnsInts[flnsIdx] = IrInts.fl;
+                frnsInts[frnsIdx] = IrInts.fr;
+                sprintf(dbgStr, "\tFLns[%2d] = %4d @%3dmm\r\n", flnsIdx, (int)flnsInts[flnsIdx], (int)(0.5f + 1000.0f * flnsDist[flnsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                sprintf(dbgStr, "\tFRns[%2d] = %4d @%3dmm\r\n", frnsIdx, (int)frnsInts[frnsIdx], (int)(0.5f + 1000.0f * frnsDist[frnsIdx]));
+                DbgUartPutLine(dbgStr, true);
+
+                flnsIdx++;frnsIdx++;
+                if(aim < 2){
+                    rsDist[rsIdx] = lsDist[lsIdx] = PP::GridSize - PP::WallThick / 2.0f - PP::IrSSide;
+                    lsInts[lsIdx] = IrInts.sl;
+                    rsInts[rsIdx] = IrInts.sr;
+                    sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                    DbgUartPutLine(dbgStr, true);
+                    Task_sleep(5);
+                    sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                    DbgUartPutLine(dbgStr, true);
+                    Task_sleep(5);
+                    lsIdx++;rsIdx++;
+                }
+            }
+            GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+            DbgUartPutLine("Calculating approximation...\r\n", true);
+
+            irApprox2nd(flnsInts, flnsDist, flnsIdx, IrACs.k[0]);
+            irApprox2nd(frnsInts, frnsDist, frnsIdx, IrACs.k[1]);
+            Task_sleep(1000);
         }
-        else
-        {
-            frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - 18.f * PP::WallThick;
+
+        else if(!strcmp(input,"side")){
+            DbgUartPutLine("Acquiring center line data finished.\r\n", true);
+            DbgUartPutLine("Place mouse like this:\r\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("\t+---+\r\n", true);
+            DbgUartPutLine("\t|   |\r\n", true);
+            DbgUartPutLine("\t+   +\r\n", true);
+            DbgUartPutLine("\t|@  |\r\n", true);
+            DbgUartPutLine("\t+---+\r\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("Touch Ir when ready.\r\n", true);
+            Task_sleep(10);
+            WaitIrTouch(IrCh::FR, 1500, 1000);
+            {
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                Task_sleep(750);
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
+                rsDist[rsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
+                //lsInts[lsIdx] = IrInts.sl;
+                rsInts[rsIdx] = IrInts.sr;
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                //lsIdx++;
+                rsIdx++;
+                Task_sleep(250);
+                //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
+                rsDist[rsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
+                //lsInts[lsIdx] = IrInts.sl;
+                rsInts[rsIdx] = IrInts.sr;
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                //lsIdx++;
+                rsIdx++;
+            }
+
+            DbgUartPutLine("Now place mouse like this:\r\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("\t+---+\n", true);
+            DbgUartPutLine("\t|   |\n", true);
+            DbgUartPutLine("\t+   +\n", true);
+            DbgUartPutLine("\t|  @|\n", true);
+            DbgUartPutLine("\t+---+\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("Touch Ir when ready.\r\n", true);
+            WaitIrTouch(IrCh::FL, 1500, 1000);
+            {
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                Task_sleep(750);
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                lsDist[lsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
+                //rsDist[rsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
+                lsInts[lsIdx] = IrInts.sl;
+                //rsInts[rsIdx] = IrInts.sr;
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                lsIdx++;
+                //rsIdx++;
+                Task_sleep(250);
+                lsDist[lsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
+                //rsDist[rsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
+                lsInts[lsIdx] = IrInts.sl;
+                Task_sleep(10);
+                //rsInts[rsIdx] = IrInts.sr;
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                lsIdx++;
+                //rsIdx++;
+            }
+
+            DbgUartPutLine("Now place mouse like this:\r\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("\t+---+\n", true);
+            DbgUartPutLine("\t|   |\n", true);
+            DbgUartPutLine("\t+   +\n", true);
+            DbgUartPutLine("\t| @ |\n", true);
+            DbgUartPutLine("\t+---+\n", true);
+            Task_sleep(10);
+            DbgUartPutLine("Touch Ir when ready.\r\n", true);
+            WaitIrTouch(IrCh::FL | IrCh::FR, 1500, 1000);
+            {
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                Task_sleep(750);
+                GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                rsDist[rsIdx] = lsDist[lsIdx] = PP::CenterToWall - PP::IrSSide;
+                lsInts[lsIdx] = IrInts.sl;
+                rsInts[rsIdx] = IrInts.sr;
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                Task_sleep(10);
+                lsIdx++; rsIdx++;
+                Task_sleep(250);
+                rsDist[rsIdx] = lsDist[lsIdx] = PP::CenterToWall - PP::IrSSide;
+                lsInts[lsIdx] = IrInts.sl;
+                rsInts[rsIdx] = IrInts.sr;
+                sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\r\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\r\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
+                DbgUartPutLine(dbgStr, true);
+                lsIdx++; rsIdx++;
+            }
+            GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+            DbgUartPutLine("Calculating approximation...\r\n", true);
+
+            irApprox2nd(lsInts, lsDist, lsIdx, IrACs.k[2]);
+            irApprox2nd(rsInts, rsDist, rsIdx, IrACs.k[3]);
+            Task_sleep(1000);
+
         }
-        flnsInts[flnsIdx] = IrInts.fl;
-        frnsInts[frnsIdx] = IrInts.fr;
-        Task_sleep(10);
-        sprintf(dbgStr, "\tFLns[%2d] = %4d @%3dmm\n", flnsIdx, (int)flnsInts[flnsIdx], (int)(0.5f + 1000.0f * flnsDist[flnsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\tFRns[%2d] = %4d @%3dmm\n", frnsIdx, (int)frnsInts[frnsIdx], (int)(0.5f + 1000.0f * frnsDist[frnsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        flnsIdx++;frnsIdx++;
-        if(aim < 2)   // 3 times
-        {
-            rsDist[rsIdx] = lsDist[lsIdx] = PP::GridSize - PP::WallThick / 2.0f - PP::IrSSide;
-            lsInts[lsIdx] = IrInts.sl;
-            rsInts[rsIdx] = IrInts.sr;
-            sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
+
+        else if(!strcmp(input,"save")){
+            eraseFlashBlock(63);
+            programFlash(63 * 1024 * 16, (unsigned int *)&IrACs.k[2], sizeof(IrApproxCoef) / 4);
+            Task_sleep(1000);
+            DbgUartPutLine("save IR Correction result...\r\n", true);
+            i = 1;
+        }
+
+        else if(!strcmp(input,"exit")){
+            DbgUartPutLine("Exit IR Correction...\r\n", true);
+            exit_flag = 1;
+        }
+
+        if(exit_flag) break;
+        input[0] = '\0';
+        Task_sleep(1000);
+    }
+
+    if(i==1){
+
+        DbgUartPutLine("Approximation result:\r\n", true);
+        Task_sleep(250);
+        for(n = 0; n < 4; n++){
+            // Dist = Exp(c0 + c1 * log(Int) + c2 * log^2(Int))
+            sprintf(dbgStr, "%s: d = e^(%8.5f + %8.5f*log(i) + %8.5f*log^2(i))\r\n", IrChNames[n], IrACs.k[n][0], IrACs.k[n][1], IrACs.k[n][2]);
             DbgUartPutLine(dbgStr, true);
-            Task_sleep(5);
-            sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-            DbgUartPutLine(dbgStr, true);
-            Task_sleep(5);
-            lsIdx++;rsIdx++;
+            Task_sleep(250);
         }
-    }
-
-    DbgUartPutLine("Acquiring center line data finished.\n", true);
-    DbgUartPutLine("Place mouse like this:\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("\t|   |\n", true);
-    DbgUartPutLine("\t+   +\n", true);
-    DbgUartPutLine("\t|@  |\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("Touch Ir when ready.\n", true);
-    WaitIrTouch(IrCh::FR, 1500, 1000);
-    {
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        Task_sleep(750);
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-        //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
-        rsDist[rsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
-        //lsInts[lsIdx] = IrInts.sl;
-        rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        //lsIdx++;
-        rsIdx++;
+        DbgUartPutLine("Calculating lookup table...\r\n", true);
         Task_sleep(250);
-        //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
-        rsDist[rsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
-        //lsInts[lsIdx] = IrInts.sl;
-        rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        //lsIdx++;
-        rsIdx++;
-    }
 
-    DbgUartPutLine("Now place mouse like this:\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("\t|   |\n", true);
-    DbgUartPutLine("\t+   +\n", true);
-    DbgUartPutLine("\t|  @|\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("Touch Ir when ready.\n", true);
-    WaitIrTouch(IrCh::FL, 1500, 1000);
-    {
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        Task_sleep(750);
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-        lsDist[lsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
-        //rsDist[rsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
-        lsInts[lsIdx] = IrInts.sl;
-        //rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        lsIdx++;
-        //rsIdx++;
-        Task_sleep(250);
-        lsDist[lsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
-        //rsDist[rsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
-        lsInts[lsIdx] = IrInts.sl;
-        //rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        lsIdx++;
-        //rsIdx++;
-    }
+        DbgUartPutLine("Calculate lookup table finished.\r\n", true);
 
-    DbgUartPutLine("Now place mouse like this:\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("\t|   |\n", true);
-    DbgUartPutLine("\t+   +\n", true);
-    DbgUartPutLine("\t| @ |\n", true);
-    DbgUartPutLine("\t+---+\n", true);
-    DbgUartPutLine("Touch Ir when ready.\n", true);
-    WaitIrTouch(IrCh::FL | IrCh::FR, 1500, 1000);
-    {
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        Task_sleep(750);
-        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-        rsDist[rsIdx] = lsDist[lsIdx] = PP::CenterToWall - PP::IrSSide;
-        lsInts[lsIdx] = IrInts.sl;
-        rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        lsIdx++; rsIdx++;
-        Task_sleep(250);
-        rsDist[rsIdx] = lsDist[lsIdx] = PP::CenterToWall - PP::IrSSide;
-        lsInts[lsIdx] = IrInts.sl;
-        rsInts[rsIdx] = IrInts.sr;
-        sprintf(dbgStr, "\t  LS[%2d] = %4d @%3dmm\n", lsIdx, (int)lsInts[lsIdx], (int)(0.5f + 1000.0f * lsDist[lsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        sprintf(dbgStr, "\t  RS[%2d] = %4d @%3dmm\n", rsIdx, (int)rsInts[rsIdx], (int)(0.5f + 1000.0f * rsDist[rsIdx]));
-        DbgUartPutLine(dbgStr, true);
-        lsIdx++; rsIdx++;
-    }
-    GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-    DbgUartPutLine("Calculating approximation...\n", true);
-#if(IrApproxOrder == 1)
-    irApprox(flnsDist, flnsInts, flnsIdx, (float *)&(IrACs.FLns[0]), (float *)&(IrACs.FLns[1]));
-//    irApprox(flwsDist, flwsInts, flwsIdx, (float *)&(IrACs.FLws[0]), (float *)&(IrACs.FLws[1]));
-    irApprox(frnsDist, frnsInts, frnsIdx, (float *)&(IrACs.FRns[0]), (float *)&(IrACs.FRns[1]));
-//    irApprox(frwsDist, frwsInts, frwsIdx, (float *)&(IrACs.FRws[0]), (float *)&(IrACs.FRws[1]));
-    irApprox(lsDist, lsInts, lsIdx, (float *)&(IrACs.LS[0]), (float *)&(IrACs.LS[1]));
-//    irApprox(lfDist, lfInts, lfIdx, (float *)&(IrACs.LF[0]), (float *)&(IrACs.LF[1]));
-    irApprox(rsDist, rsInts, rsIdx, (float *)&(IrACs.RS[0]), (float *)&(IrACs.RS[1]));
-//    irApprox(rfDist, rfInts, rfIdx, (float *)&(IrACs.RF[0]), (float *)&(IrACs.RF[1]));
-    DbgUartPutLine("Approximation result:\n", true);
-    for(n = 0; n < 4; n++)
-    {
-        // Intensity = e^k0 * d^k1
-        sprintf(dbgStr, "%s: i = e^%8f * d^%8f\n", IrChNames[n], IrACs.k[n][0], IrACs.k[n][1]);
-        DbgUartPutLine(dbgStr, true);
-    }
-    DbgUartPutLine("Calculating lookup table...\n", true);
-    float ints, dist, rat;
-    rat = powf(10.f, 1.0f/(float)IrLookupTableLen);
-    for(i = 0, dist = 0.02f; i < IrLookupTableLen; dist *= rat, i++)
-    {
-        IrLTs.Dists[i] = (unsigned short)(dist * 10000.0f + 0.5f);
-        for(n = 0; n < 4; n++)
-        {
-            ints = powf(dist, IrACs.k[n][1]) * expf(IrACs.k[n][0]);
-            if(ints >= 65534.5f)
-                IrLTs.Ints[n][i] = 65535;
-            else if(ints <= 0.5f)
-                IrLTs.Ints[n][i] = 0;
-            else
-                IrLTs.Ints[n][i] = (unsigned short)(ints + 0.5f);
-            Task_sleep(1);
-        }
-    }
-    eraseFlashBlock(253);
-    programFlash(253 * 16 * 1024, (unsigned int *)&IrLTs.Dists[0], (sizeof(IrLookupTable) + 3) / 4);
-    programFlash(253 * 16 * 1024 + 320, (unsigned int *)&IrACs.k[0], (sizeof(IrApproxCoef) + 3) / 4);
-    DbgUartPutLine("Calculate lookup table finished.\n", true);
-    DbgUartPutLine("D(mm)\tIrFL\tIrFR\tIrSL\tIrSR\n", true);
-    for(int i = 0; i < IrLookupTableLen; i++)
-    {
         Task_sleep(200);
-        sprintf(dbgStr, "%5.1f\t%4d\t%4d\t%4d\t%4d\n", (float)IrLTs.Dists[i] * .1f,
-                IrLTs.FLnsInts[i], IrLTs.FRnsInts[i],
-                IrLTs.LSInts[i], IrLTs.RSInts[i]);
-        DbgUartPutLine(dbgStr, true);
+        DbgUartPutLine("\n+--------------------------+\n", true);
+        DbgUartPutLine("|  !!! Congratulation !!!  |\n", true);
+        DbgUartPutLine("|  Ir correction finished. |\n", true);
+        DbgUartPutLine("+--------------------------+\n", true);
+        Task_sleep(100);
     }
-#elif(IrApproxOrder == 2)
-    irApprox2nd(flnsInts, flnsDist, flnsIdx, IrACs.k[0]);
-    irApprox2nd(frnsInts, frnsDist, frnsIdx, IrACs.k[1]);
-    irApprox2nd(lsInts, lsDist, lsIdx, IrACs.k[2]);
-    irApprox2nd(rsInts, rsDist, rsIdx, IrACs.k[3]);
-    DbgUartPutLine("Approximation result:\n", true);
-    Task_sleep(250);
-    for(n = 0; n < 4; n++)
-    {
-        // Dist = Exp(c0 + c1 * log(Int) + c2 * log^2(Int))
-        sprintf(dbgStr, "%s: d = e^(%8.5f + %8.5f*log(i) + %8.5f*log^2(i))\n", IrChNames[n], IrACs.k[n][0], IrACs.k[n][1], IrACs.k[n][2]);
-        DbgUartPutLine(dbgStr, true);
-        Task_sleep(250);
-    }
-    DbgUartPutLine("Calculating lookup table...\n", true);
-    Task_sleep(250);
-    float ints, dist, rat;
-    float a, b, c;
-    rat = powf(10.f, 1.0f/(float)IrLookupTableLen);
-    for(i = 0, dist = 0.02f; i < IrLookupTableLen; dist *= rat, i++)
-    {
-        IrLTs.Dists[i] = (unsigned short)(dist * 10000.0f + 0.5f);
-        for(n = 0; n < 4; n++)
-        {
-            a = IrACs.k[n][2]; b = IrACs.k[n][1]; c = IrACs.k[n][0] - logf(dist);
-            ints = expf((-b - sqrtf(b * b - 4.f * a * c)) / (2.f * a));
-            if(ints >= 65534.5f)
-                IrLTs.Ints[n][i] = 65535;
-            else if(ints <= 0.5f)
-                IrLTs.Ints[n][i] = 0;
-            else
-                IrLTs.Ints[n][i] = (unsigned short)(ints + 0.5f);
-            Task_sleep(1);
-        }
-    }
-    eraseFlashBlock(253);
-    programFlash(253 * 1024 * 16, (unsigned int *)&IrLTs.Dists[0], (sizeof(IrLookupTable) + 3) / 4);
-    programFlash(253 * 1024 + 320, (unsigned int *)&IrACs.k[0], (sizeof(IrApproxCoef) + 3) / 4);
-    DbgUartPutLine("Calculate lookup table finished.\n", true);
-    DbgUartPutLine("D(mm)\tIrFL\tIrFR\tIrSL\tIrSR\n", true);
-    for(int i = 0; i < IrLookupTableLen; i++)
-    {
-        Task_sleep(250);
-        sprintf(dbgStr, "%5.1f\t%4d\t%4d\t%4d\t%4d\n", (float)IrLTs.Dists[i] * .1f,
-                IrLTs.FLnsInts[i], IrLTs.FRnsInts[i],
-                IrLTs.LSInts[i], IrLTs.RSInts[i]);
-        DbgUartPutLine(dbgStr, true);
-    }
-#endif
-    Task_sleep(200);
-    DbgUartPutLine("\n+--------------------------+\n", true);
-    DbgUartPutLine("|  !!! Congratulation !!!  |\n", true);
-    DbgUartPutLine("|  Ir correction finished. |\n", true);
-    DbgUartPutLine("+--------------------------+\n", true);
-    Task_sleep(100);
     TskTop::Mode = TskTop::MouseMode::Idle;
 }
 }

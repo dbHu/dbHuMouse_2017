@@ -17,7 +17,6 @@
 UART_Handle dbgUart;
 Semaphore_Handle semDbgUart;
 
-
 void dbgUartWriteCb(UART_Handle handle, void *buf, size_t count)
 {
     Semaphore_post(semDbgUart);
@@ -49,7 +48,7 @@ int DbgUartGetLine(char *str)
     Task_sleep(10);
     UART_readCancel(dbgUart);
     if(len > 0)
-        str[len] = '\0';
+        str[len-1] = '\0';
     return len;
 }
 
@@ -67,7 +66,7 @@ void InitDbgUart()
     uartParams.writeDataMode = UART_DATA_TEXT;
     uartParams.readDataMode = UART_DATA_TEXT;
     uartParams.readReturnMode = UART_RETURN_NEWLINE;
-    uartParams.readEcho = UART_ECHO_ON;
+    uartParams.readEcho = UART_ECHO_OFF;
     uartParams.writeMode = UART_MODE_CALLBACK;
     uartParams.readMode = UART_MODE_BLOCKING;
     uartParams.baudRate = 115200;
