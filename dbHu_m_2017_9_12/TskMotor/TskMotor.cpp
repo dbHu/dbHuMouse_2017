@@ -152,7 +152,7 @@ void task(UArg arg0, UArg arg1)
         GyroZ = imuVals.angvZ - GyroZZero;
 
 
-        if(pwmCnt > 100)
+        if(pwmCnt > 200)
         {
             MotorPwmCoast();
 //            lvPid.Reset();
@@ -203,13 +203,7 @@ void task(UArg arg0, UArg arg1)
         {
             // read dlv&dav from fifo
             QMotor->De(desire); // dequeue, if empty desire will not change
-            if(TskTop::info_flag == 2)
-               desire.Omega = 10.f;
-            else if(TskTop::info_flag == 1) desire.Velocity = 0.2f;
-//            else {
-//                desire.Omega = 0.f;
-//                desire.Velocity = 0.f;
-//            }
+
             if(desire.Omega > 0.f || desire.Velocity > 0.f)
 			{
 //					TskAction::info.inf[i] = desire.Velocity;
@@ -233,17 +227,18 @@ void task(UArg arg0, UArg arg1)
             CurrentV = desire.Velocity + LvAdj;
             DesireDistance += CurrentV * PP::Ts;
             LV = (DesireDistance - kalOut.elem[0]) * pidparam.posCoff + (CurrentV - kalOut.elem[1]) * pidparam.velCoff;
-            lvPidOut = LV *480.f / 3.7f;
+            lvPidOut = LV * 480.f / 3.7f;
             avPidOut = avPid.Tick(desire.Omega + OmgAdj - AV);
             rPwm = (lvPidOut + avPidOut);
             lPwm = (lvPidOut - avPidOut);
             rightPwm = (int)saturate(rPwm, 478.f, -478.f);
             leftPwm = (int)saturate(lPwm, 478.f, -478.f);
-            if(fabs(rightPwm) > 320.f || fabs(leftPwm) > 320.f || fabs(imuVals.acclY) > 8.f)
+            if(fabs(rightPwm) > 320.f || fabs(leftPwm) > 320.f || fabs(AV) > 10.f || EncVel >= 1.f)
             {
             	pwmCnt++;
             }
             else pwmCnt = 0;
+
             if(staticCnt > 63)
                 MotorPwmSetDuty(0, 0);
             else{
@@ -289,6 +284,11 @@ void task(UArg arg0, UArg arg1)
             switch(msg & 0xFFFF0000)
             {
             case MotorMsg::EnableMotors:
+                DistanceAcc = 0.f;
+                DesireDistance = 0.f;
+                AngleAcc = 0.f;
+                DistanceAcc_en = 0.f;
+
                 QMotor->Clear();
                 MotorPwmSetDuty(0, 0);
                 MotorEnabled = true;

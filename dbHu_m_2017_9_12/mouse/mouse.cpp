@@ -87,13 +87,13 @@ namespace Micromouse {
 
     bool Mouse::StoreMazeInfo(void)
     {
-        TskIr::programFlash(254 * 1024 + 320,(unsigned int*)&this->searchedTimes[0],sizeof(unsigned short) * colNum * rowNum);
+        TskIr::programFlash(62 * 1024 * 16 + 320,(unsigned int*)&this->searchedTimes[0],sizeof(unsigned short) * colNum * rowNum);
         return 1;
     }
 
     bool Mouse::ReadMazeInfo(void)
     {
-        TskIr::ReadFlash(0x3F940,(unsigned char*)&this->searchedTimes[0],sizeof(unsigned short) * colNum * rowNum);
+        TskIr::ReadFlash(62 * 1024 * 16 + 320,(unsigned char*)&this->searchedTimes[0],sizeof(unsigned short) * colNum * rowNum);
         return 1;
     }
 
@@ -184,7 +184,7 @@ namespace Micromouse {
         if(this->targetCoor.X == this->currCoor.X && this->targetCoor.Y == this->currCoor.Y)
         {
         	this->state.Proc = MouseProcState::BackSearching;
-            TskIr::eraseFlashBlock(254);
+            TskIr::eraseFlashBlock(62);
         	this->maze->StoreMazeGrids();
         	StoreMazeInfo();
         }
@@ -192,7 +192,7 @@ namespace Micromouse {
         {
             this->state.Proc = MouseProcState::Running;
             *srchFinish = true;
-            TskIr::eraseFlashBlock(254);
+            TskIr::eraseFlashBlock(62);
         	this->maze->StoreMazeGrids();
         	StoreMazeInfo();
         }

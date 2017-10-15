@@ -24,6 +24,7 @@ public:
         IrMonitor,
         IrCorrection,
         UartCmd,
+        ActionTest,
 		SolveTest,
         ClearMaze,
         Gaming1,

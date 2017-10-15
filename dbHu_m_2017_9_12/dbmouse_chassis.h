@@ -59,7 +59,6 @@ typedef enum DBMOUSE_UARTName {
 } DBMOUSE_UARTName;
 
 #define UART_BUF_LEN 128
-
 /*!
  *  @brief  Initialize board specific DMA settings
  *

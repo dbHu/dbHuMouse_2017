@@ -132,6 +132,7 @@ void encImuMonitor()
 
 void irMonitor()
 {
+    int i=0;
     TskMotor::MotorMsg::MsgType motMsg;
     TskIr::IrMsg::MsgType irMsg;
 
@@ -150,28 +151,28 @@ void irMonitor()
 
     while(true)
     {
-       // if(!(i++ & 0xf))
-       // {
-       //     DbgUartPutLine( "\n AvgFwd:b\t   LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\t slInt\t srInt\r\n", true);
-       // }
-//        sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\t%4d\t%4d\r\n",
-//                .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
-//                TskIr::IrDists.FLns, TskIr::IrBins.FLns,
-//                TskIr::IrDists.FRns, TskIr::IrBins.FRns,
-//                TskIr::IrDists.LS, TskIr::IrBins.LS,
-//                TskIr::IrDists.RS, TskIr::IrBins.RS,
-//                TskIr::IrYaw.byLS * 180.f / 3.1415927f,
-//                TskIr::IrYaw.byRS * 180.f / 3.1415927f,
-//                TskIr::IrYaw.byFLR * 180.f / 3.1415927f,
-//              TskIr::IrInts.sl,
-//              TskIr::IrInts.sr
-//        );
-		sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
-				TskIr::IrInts.fl, TskIr::IrDists.FLns,
-				TskIr::IrInts.fr, TskIr::IrDists.FRns,
-				TskIr::IrInts.sl, TskIr::IrDists.LS,
-				TskIr::IrInts.sr, TskIr::IrDists.RS
-		);
+       if(!(i++ & 0xf))
+       {
+           DbgUartPutLine( "\tAve:b\t  LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\r\n", true);
+       }
+       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
+               .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
+               TskIr::IrDists.FLns, TskIr::IrBins.FLns,
+               TskIr::IrDists.FRns, TskIr::IrBins.FRns,
+               TskIr::IrDists.LS, TskIr::IrBins.LS,
+               TskIr::IrDists.RS, TskIr::IrBins.RS,
+               TskIr::IrYaw.byLS * 180.f / 3.1415927f,
+               TskIr::IrYaw.byRS * 180.f / 3.1415927f,
+               TskIr::IrYaw.byFLR * 180.f / 3.1415927f
+               // TskIr::IrInts.sl,
+               // TskIr::IrInts.sr
+        );
+		// sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
+		// 		TskIr::IrInts.fl, TskIr::IrDists.FLns,
+		// 		TskIr::IrInts.fr, TskIr::IrDists.FRns,
+		// 		TskIr::IrInts.sl, TskIr::IrDists.LS,
+		// 		TskIr::IrInts.sr, TskIr::IrDists.RS
+		// );
         Task_sleep(300);
         DbgUartPutLine(dbgStr, true);
         Task_sleep(200);
@@ -184,12 +185,40 @@ void irMonitor()
 
 void uartCmd()
 {
+    cmd_shell();
+}
 
-	while(true)
-	{
-        cmd_shell();
-	}
+void actionTest(void)
+{
+    float pre=0.f,post=0.f;
+    char str[128];
+    TskTop::SetLeds(0x7);
+    TskAction::Act::ActType actMsg;
+    TskAction::ActMsg::MsgType end_Msg;
 
+    while(true)
+    {
+        TskTop::SetLeds(0x2);
+        MotorStart();
+        actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
+        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+        actMsg = (TskAction::Act::ActType)(TskAction::Act::L90);
+        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+        actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
+        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+        TskAction::WaitQEnd();
+        Task_sleep(50);
+        MotorStop();
+        sprintf(dbgStr, "%6.3f,%6.3f,%6.3f\r\n",
+            TskMotor::DistanceAcc,
+            TskMotor::DistanceAcc_en,
+            TskMotor::AngleAcc);
+        DbgUartPutLine(dbgStr, true);
+        break;
+    }
 }
 
 void solveTest()
@@ -252,7 +281,7 @@ void solveTest()
 
 void clearMazeInfo()
 {
-    TskIr::eraseFlashBlock(254);
+    TskIr::eraseFlashBlock(62);
     SetLeds(0x1);
     Task_sleep(500);
     SetLeds(0x0);
@@ -354,6 +383,9 @@ void modeName(MouseMode::ModeType mode, char *str)
     case MouseMode::UartCmd:
         sprintf(str, "Mode Listen Uart Command.\r\n");
         break;
+    case MouseMode::ActionTest:
+        sprintf(str, "Mode ActionTest.Touch Ir to start.\r\n");
+        break;
     case MouseMode::SolveTest:
         sprintf(str, "Mode SolveTest.Touch Ir to start.\r\n");
         break;
@@ -398,18 +430,20 @@ void task(UArg arg0, UArg arg1)
 
     TskIr::IrMsg::MsgType irMsg;
 
-    InitDbgUart();
+    Task_sleep(1000);
 
     SetLeds(0x01);
-    Task_sleep(100);
+    Task_sleep(1500);
     SetLeds(0x02);
-    Task_sleep(100);
+    Task_sleep(1500);
     SetLeds(0x04);
-    Task_sleep(100);
+    Task_sleep(1500);
     SetLeds(0x00);
 
-    printf("Hello from dbmouse!\r\n");
-    fflush(stdout);
+    InitDbgUart();
+
+    DbgUartPutLine("Hello from dbmouse!\r\n",true);
+
     Task_sleep(1000);
     TskAction::Init();
     TskMotor::Init();
@@ -420,8 +454,7 @@ void task(UArg arg0, UArg arg1)
     Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
 
     Task_sleep(500);
-    printf("Roll wheel to change mode...\r\n");
-    fflush(stdout);
+    DbgUartPutLine("Roll wheel to change mode...\r\n",true);
 
     MouseMode::ModeType lastMode = Mode = MouseMode::Idle;
     SetLeds(Mode);
@@ -452,6 +485,9 @@ void task(UArg arg0, UArg arg1)
             case MouseMode::UartCmd:
                 uartCmd();
                 break;
+            case MouseMode::ActionTest:
+                actionTest();
+               break;
              case MouseMode::SolveTest:
              	solveTest();
              	break;

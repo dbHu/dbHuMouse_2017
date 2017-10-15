@@ -44,9 +44,8 @@ bool DbgUartPutLine(char *str, bool wait)
 int DbgUartGetLine(char *str)
 {
     int len;
-    len = UART_read(dbgUart, str, UART_BUF_LEN);
-    Task_sleep(10);
-    UART_readCancel(dbgUart);
+    len = UART_read(dbgUart, str, 20);
+
     if(len > 0)
         str[len-1] = '\0';
     return len;

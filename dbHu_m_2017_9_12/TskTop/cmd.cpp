@@ -15,10 +15,51 @@
 #include "TskTop/TskTop.h"
 #include "cmd.h"
 
-char dbgStr[80];
+char dbgStr[128];
+
+void MotorStart(void)
+{
+	TskMotor::MotorMsg::MsgType motMsg;
+
+	motMsg = TskMotor::MotorMsg::DisableMotors;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+
+	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
+	TskTop::SetLeds(0x0);
+
+//	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
+//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::EnableGyro;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::EnableAccl;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::EnableMotors;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+
+	Task_sleep(100);// wait for all HW Enable
+
+}
+
+void MotorStop(void)
+{
+	TskMotor::MotorMsg::MsgType motMsg;
+
+	motMsg = TskMotor::MotorMsg::DisableMotors;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::DisableAccl;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	motMsg = TskMotor::MotorMsg::DisableGyro;
+	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+
+	Task_sleep(100);// wait for all HW Enable
+
+}
+
 void cmd_shell(void)
 {
-	char input[20];
+	char input[128];
 	bool exit_flag = 0;
 	TskTop::SetLeds(0x0);
 
@@ -41,7 +82,7 @@ void cmd_shell(void)
     		DbgUartGetLine(input);
     	}while(input[0] == '\0');
 
-		if(!strcmp(input, "pid")) {
+ 		if(!strcmp(input, "pid")) {
 			DbgUartPutLine("start PID test\r\n", true);
 			pidTest();
 		}
@@ -88,7 +129,7 @@ void cmd_shell(void)
 		input[0] = '\0';
 		if(exit_flag)
 		    break;
-		Task_sleep(10000);
+		Task_sleep(2000);
 	}
 }
 
@@ -96,31 +137,6 @@ void pidTest(void)
 {
 	int i=0;
 	TskTop::SetLeds(0x7);
-
-	TskMotor::MotorMsg::MsgType motMsg;
-
-	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
-	TskTop::SetLeds(0x0);
-
-//	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(100);// wait for all HW Enable
-
-	TskMotor::DistanceAcc = 0.f;
-	TskMotor::AngleAcc = 0.f;
-	TskMotor::DistanceAcc_en = 0.f;
 
 	DbgUartPutLine("triggle IR L for V pid, triggle IR R for W PID\r\n", true);
 
@@ -130,33 +146,42 @@ void pidTest(void)
     	    TskTop::SetLeds(0x1);
         	if(TskIr::TestIrTouch(TskIr::IrCh::FL, 1600, 1200))
         	{
+        		MotorStart();
         	    TskTop::SetLeds(0x0);
-        		TskTop::info_flag = 1;
+        		for(i = 0; i < 200; i++) 
+        			TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
+        		TskAction::WaitQEnd();
+        		Task_sleep(50);
+        		MotorStop();
         		DbgUartPutLine("start Velocity pid test\n", true);
             	break;
         	}
 
         	else if(TskIr::TestIrTouch(TskIr::IrCh::FR, 1600, 1200))
         	{
+        		MotorStart();
         	    TskTop::SetLeds(0x0);
-        		TskTop::info_flag = 2;
+         		for(i = 0; i < 200; i++) 
+        			TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
+         		TskAction::WaitQEnd();
+                Task_sleep(50);
+        		MotorStop();
         		DbgUartPutLine("start Omega pid test\n", true);
             	break;
         	}
     	}
-        Task_sleep(500);
-        TskTop::info_flag = 0;
+    	i = 0;
 #endif
-        while(i < 512)
+        while(i < 200)
         {
             sprintf(dbgStr, "%4.3f,%4.3f\n",
                 TskAction::Desire[i],
                 TskAction::Info[i]);
             DbgUartPutLine(dbgStr, true);
-            Task_sleep(10);
+            Task_sleep(20);
             i++;
         }
-        if(i == 512) {
+        if(i == 200) {
         	Task_sleep(100);
         	DbgUartPutLine("over\r\n", true);
         	i = 0;
@@ -167,9 +192,6 @@ void pidTest(void)
         	DbgUartPutLine(dbgStr, true);
         }
 
-        motMsg = TskMotor::MotorMsg::DisableMotors;
-		Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
         break;
     }
 }
@@ -177,34 +199,10 @@ void pidTest(void)
 void ActionTestLR(void)
 {
 	float pre=0.f,post=0.f;
-	char str[10];
+	char str[128];
 	TskTop::SetLeds(0x7);
-	TskMotor::MotorMsg::MsgType motMsg;
 	TskAction::Act::ActType actMsg;
 	TskAction::ActMsg::MsgType end_Msg;
-
-	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
-	TskTop::SetLeds(0x0);
-//	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(100);// wait for all HW Enable
-
-	TskMotor::DistanceAcc = 0.f;
-	TskMotor::AngleAcc = 0.f;
-	TskMotor::DistanceAcc_en = 0.f;
 
     DbgUartPutLine("please input l, r to test LR Turn90\r\n",true);
 
@@ -213,6 +211,8 @@ void ActionTestLR(void)
 		do{
     		DbgUartGetLine(str);
     	}while(str[0] == '\0');
+
+		TskTop::SetLeds(0x2);
 
 		switch(str[0]){
 			case 'l':
@@ -237,6 +237,7 @@ void ActionTestLR(void)
                   	CP.TURNL90_POST_ADJ);
         		DbgUartPutLine(dbgStr, true);
 
+        		MotorStart();
         		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 		   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
 	       		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -246,6 +247,9 @@ void ActionTestLR(void)
 	       		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 		   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
 	       		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+                TskAction::WaitQEnd();
+                Task_sleep(50);
+	       		MotorStop();
 				break;
 			case 'r':
 				DbgUartPutLine("test R Turn90\r\n", true);
@@ -270,15 +274,19 @@ void ActionTestLR(void)
                   	CP.TURNR90_POST_ADJ);
         		DbgUartPutLine(dbgStr, true);
 
+				MotorStart();
         		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 		   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
 	       		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
-	       		actMsg = (TskAction::Act::ActType)(TskAction::Act::L90);
+	       		actMsg = (TskAction::Act::ActType)(TskAction::Act::R90);
 		   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
 	       		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
 	       		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 		   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
 	       		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+                TskAction::WaitQEnd();
+                Task_sleep(50);
+	       		MotorStop();
 				break;
 			default:
 				DbgUartPutLine("Please input l or r\r\n", true);
@@ -319,36 +327,12 @@ void ActionTestLR(void)
 void ActionIr(void)
 {
 	float adj1=0.f,adj2=0.f,adj3=0.f,adj4=0.f,adj5=0.f;
-	char str[10];
+	char str[128];
 	TskTop::SetLeds(0x7);
-	TskMotor::MotorMsg::MsgType motMsg;
 	TskAction::Act::ActType actMsg;
 	TskAction::ActMsg::MsgType end_Msg;
 
-	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
-	TskTop::SetLeds(0x0);
-//	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(100);// wait for all HW Enable
-
-	TskMotor::DistanceAcc = 0.f;
-	TskMotor::AngleAcc = 0.f;
-	TskMotor::DistanceAcc_en = 0.f;
-
-    DbgUartPutLine("please input L90, R90, FWD, RESTART, STOP，BACK to choose action\r\n",true);
+    DbgUartPutLine("please input L90, R90, FWD, RESTART, STOP, BACK to choose action\r\n",true);
 
 	while(true)
 	{
@@ -357,6 +341,8 @@ void ActionIr(void)
    		do{
     		DbgUartGetLine(str);
     	}while(str[0] == '\0');
+
+    	TskTop::SetLeds(0x2);
 
 		if(!strcmp(str, "L90"))
 		{
@@ -368,7 +354,8 @@ void ActionIr(void)
 			CP.TURNLWAIT_DIST_ADJ += adj1;
 			sprintf(dbgStr, "L ADJ DIST:%5.3f\r\n", CP.TURNLWAIT_DIST_ADJ);
     		DbgUartPutLine(dbgStr, true);
-    		fflush(stdout);
+
+    		MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -378,6 +365,9 @@ void ActionIr(void)
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -391,7 +381,8 @@ void ActionIr(void)
 			CP.TURNRWAIT_DIST_ADJ += adj1;
 			sprintf(dbgStr, "R ADJ DIST:%5.3f\r\n", CP.TURNRWAIT_DIST_ADJ);
     		DbgUartPutLine(dbgStr, true);
-    		fflush(stdout);
+
+    		MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -401,6 +392,9 @@ void ActionIr(void)
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -414,7 +408,8 @@ void ActionIr(void)
 			CP.RESTART_DIST_ADJ += adj1;
 			sprintf(dbgStr, "R ADJ DIST:%5.3f\r\n", CP.RESTART_DIST_ADJ);
     		DbgUartPutLine(dbgStr, true);
-    		fflush(stdout);
+
+    		MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -430,6 +425,9 @@ void ActionIr(void)
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -443,13 +441,17 @@ void ActionIr(void)
 			CP.STOPEND_DIST_ADJ += adj1;
 			sprintf(dbgStr, "R ADJ DIST:%5.3f\r\n", CP.STOPEND_DIST_ADJ);
     		DbgUartPutLine(dbgStr, true);
-    		fflush(stdout);
+
+    		MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop | TskAction::Act::Corr);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -495,7 +497,8 @@ void ActionIr(void)
          		CP.LFWDEND_DIST_W2NW,
          		CP.RFWDEND_DIST_W2NW);
     		DbgUartPutLine(dbgStr, true);
-
+			
+			MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -505,6 +508,9 @@ void ActionIr(void)
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -550,7 +556,8 @@ void ActionIr(void)
         		CP.LBACKCENTER_ADJ,
          		CP.RBACKCENTER_ADJ);
     		DbgUartPutLine(dbgStr, true);
-
+    		
+    		MotorStart();
     		actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
@@ -560,6 +567,9 @@ void ActionIr(void)
        		actMsg = (TskAction::Act::ActType)(TskAction::Act::Back);
 	   		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
        		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+       		MotorStop();
 			break;
 		}
 
@@ -577,35 +587,12 @@ void RandomMode(void){
 
 	TskTop::SetLeds(0x7);
 
-	TskMotor::MotorMsg::MsgType motMsg;
 	TskAction::Act::ActType actMsg;
 	TskAction::ActMsg::MsgType end_Msg;
 
-	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
-	TskTop::SetLeds(0x0);
-
-//	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
-
-	Task_sleep(100);// wait for all HW Enable
-
-	TskMotor::DistanceAcc = 0.f;
-	TskMotor::AngleAcc = 0.f;
-	TskMotor::DistanceAcc_en = 0.f;
-
 	DbgUartPutLine("Start Random Mode\r\n", true);
-    fflush(stdout);
+
+	MotorStart();
 
     while(true){
     	srand(i);

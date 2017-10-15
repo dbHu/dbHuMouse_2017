@@ -58,7 +58,7 @@ char dbgStr[48];
 
 inline float irDistFwd()
 {
-    if(!IrBins.LS)
+    if(IrBins.LS == 0)
     {
         if(IrBins.RS)
         {
@@ -69,12 +69,12 @@ inline float irDistFwd()
     }
     else
     {
-        if(!IrBins.RS)
+        if(IrBins.RS == 0)
         {
             return IrDists.FRns;
         }
         else
-            return .5f * (IrDists.FLns + IrDists.FRns);
+            return ((IrBins.LS > IrBins.RS)? IrBins.LS:IrBins.RS);
     } 
     // return .5f * ((IrBins.LS? IrDists.FLws : IrDists.FLns) + (IrBins.RS? IrDists.FRws : IrDists.FRns));
 
@@ -115,6 +115,7 @@ inline unsigned short adcReadCode()
 
 void irTimerHooker(UArg arg)
 {
+    static int i = 0;
 //	unsigned int key;
 //	key = Hwi_disable();
     if(irEmitterNo == 0)
@@ -159,6 +160,12 @@ void irTimerHooker(UArg arg)
         // inform tskIr
         Semaphore_post(SemIrAdcFinish);
     }
+//    if(i == 10000 && irEmitterNo > 0){
+//        sprintf(dbgStr, "\t ir data:%4d\r\n",IrInts.ch[irEmitterNo - 1]);
+//        DbgUartPutLine(dbgStr, true);
+//        i = 0;
+//    }
+//    i++;
 //    Hwi_restore(key);
 }
 
@@ -298,11 +305,11 @@ void task(UArg arg0, UArg arg1)
 #endif
 
     //TODO
-    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (120 | (150 << 16));
-    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (120 | (150 << 16));
-    IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (50 | (80 << 16));
-    IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (50 | (80 << 16));
-
+    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (105 | (125 << 16));
+    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (100 | (120 << 16));
+    IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (55 | (75 << 16));
+    IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (60 | (80 << 16));
+    IrBins.Fwd   = 0; IrBinThs.Fwd.Th   = (100 | (125 << 16));
     // IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (250 | (285 << 16));
     // IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (250 | (285 << 16));
     // IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (150 << 16));

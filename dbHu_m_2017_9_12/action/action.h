@@ -104,7 +104,7 @@ extern volatile float Info[512],Desire[512];
 
 int MotionCalcFwd(float v0, float v1, float s, float *vs);
 int MotionCalcTurn(float v, float ang, float mu, float *omgs, float *requ);
-
+extern void WaitQEnd(void);
 void Init();
 }
 

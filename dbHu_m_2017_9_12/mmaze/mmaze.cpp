@@ -234,13 +234,13 @@ namespace Micromouse
     }
     bool MMaze::StoreMazeGrids(void)
     {
-    	TskIr::programFlash(254 * 1024,(unsigned int*)&this->grids[0],sizeof(GridInfo) * (colNum + 1) * (rowNum + 1));
+    	TskIr::programFlash(62 * 1024 * 16,(unsigned int*)&this->grids[0],sizeof(GridInfo) * (colNum + 1) * (rowNum + 1));
         return 1;
     }
 
     bool MMaze::ReadMazeGrids(void)
     {
-        TskIr::ReadFlash(0x3F800,(unsigned char*)&this->grids[0],sizeof(GridInfo) * (colNum + 1) * (rowNum + 1));
+        TskIr::ReadFlash(62 * 1024 * 16,(unsigned char*)&this->grids[0],sizeof(GridInfo) * (colNum + 1) * (rowNum + 1));
         return 1;
     }
     void MMaze::Fluid(unsigned short *height, const GridCoor& start, const GridCoor& target, WallType::Type wallCanGo, bool fullFluid)
