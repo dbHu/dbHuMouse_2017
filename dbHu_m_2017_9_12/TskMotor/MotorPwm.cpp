@@ -12,6 +12,9 @@
 #include <inc/hw_gpio.h>
 #include <inc/hw_sysctl.h>
 
+#include "../board.h"
+#include <ti/drivers/GPIO.h>
+
 #include <xdc/std.h>
 
 void MotorPwmCoast()
@@ -80,7 +83,6 @@ void MotorPwmSetDuty(short r, short l)
 
 void MotorPwmInit()
 {
-    HWREG(SYSCTL_RCC) &= ~SYSCTL_RCC_USEPWMDIV; // pwm clock use sysclock
 //    HWREG(SYSCTL_RCGCPWM) = HWREG(SYSCTL_RCGCPWM) & 0xFFFFFFFC | 0x00000002;    // enable PWM1
     HWREG(SYSCTL_RCGCPWM) = 0x00000001;    // enable PWM0, disable PWM1
 

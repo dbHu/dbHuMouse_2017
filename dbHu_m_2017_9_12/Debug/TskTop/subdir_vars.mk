@@ -10,9 +10,16 @@ CPP_SRCS += \
 ../TskTop/TskTop.cpp \
 ../TskTop/cmd.cpp 
 
+C_SRCS += \
+../TskTop/UARTUtils.c 
+
+C_DEPS += \
+./TskTop/UARTUtils.d 
+
 OBJS += \
 ./TskTop/DbgUart.obj \
 ./TskTop/TskTop.obj \
+./TskTop/UARTUtils.obj \
 ./TskTop/cmd.obj 
 
 CPP_DEPS += \
@@ -23,7 +30,11 @@ CPP_DEPS += \
 OBJS__QUOTED += \
 "TskTop\DbgUart.obj" \
 "TskTop\TskTop.obj" \
+"TskTop\UARTUtils.obj" \
 "TskTop\cmd.obj" 
+
+C_DEPS__QUOTED += \
+"TskTop\UARTUtils.d" 
 
 CPP_DEPS__QUOTED += \
 "TskTop\DbgUart.d" \
@@ -34,5 +45,8 @@ CPP_SRCS__QUOTED += \
 "../TskTop/DbgUart.cpp" \
 "../TskTop/TskTop.cpp" \
 "../TskTop/cmd.cpp" 
+
+C_SRCS__QUOTED += \
+"../TskTop/UARTUtils.c" 
 
 

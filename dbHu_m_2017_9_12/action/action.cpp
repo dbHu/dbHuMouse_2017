@@ -6,6 +6,7 @@
  */
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -81,10 +82,11 @@ int i = 0;
 
 void WaitQEnd(void)
 {
+    bool rtn;
     while(TskMotor::QMotor->Len() > 0)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
     }
 }
 
@@ -267,8 +269,8 @@ int actFwdEndCorrBySideWallDisappear(WallStatus *wall, float v0, float v1,  floa
         for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
 #if DBG_PRINT_ACT_INFO > 0
-        sprintf(actionDbgString, "\tFwdEnd@: %dmm\n", (int)(d * 1000.0f));
-        DbgUartPutLine(actionDbgString);
+        sprintf(TskTop::dbgStr, "\tFwdEnd@: %dmm\n", (int)(d * 1000.0f));
+        Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
 #endif
 
         return 1;
@@ -392,7 +394,7 @@ void actCRush(void)
 //TODO
 void actTRush(void){
     int i, len;
-    bool flag;
+    bool flag,rtn;
 	TskTop::SetLeds(0x0);
     distZero = TskMotor::DistanceAcc;
     len = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TRushDist, v_s);
@@ -403,8 +405,8 @@ void actTRush(void){
     else flag = 0;
     while(TskMotor::DistanceAcc - distZero < SP.TRushDist)
     {
-		if(!Semaphore_pend(SemActTick, 2))
-			System_abort("pend SemActTick failed!\n");
+		rtn = Semaphore_pend(SemActTick, 2);
+		Assert_isTrue(rtn,NULL);
 		IRint = (flag?TskIr::IrDists.LS : TskIr::IrDists.RS);
 		if(IMin < 0.001f) IMin = IRint;
 //		IRint = TskIr::IrDists.LS;
@@ -444,6 +446,7 @@ void actRushOut(void){
 void actL45i(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
 
@@ -458,8 +461,8 @@ void actL45i(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNLI45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLI45_MIN_DIST)
@@ -485,6 +488,7 @@ void actL45i(void){
 void actR45i(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
@@ -500,8 +504,8 @@ void actR45i(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNRI45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRI45_MIN_DIST)
@@ -526,6 +530,7 @@ void actR45i(void){
 void actL135i(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 * 3 / 2.f, PP::Mu, o_s, &requ);
@@ -541,8 +546,8 @@ void actL135i(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNLI135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLI135_MIN_DIST)
@@ -567,6 +572,7 @@ void actL135i(void){
 void actR135i(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 * 3 / 2.f, PP::Mu, o_s, &requ);
@@ -582,8 +588,8 @@ void actR135i(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNRI135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRI135_MIN_DIST)
@@ -608,6 +614,7 @@ void actR135i(void){
 void actL90r(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2, PP::Mu, o_s, &requ);
 
@@ -622,8 +629,8 @@ void actL90r(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNL90R_MAX_DIST) < SP.ERRDist && IMin < SP.TURNL90R_MIN_DIST)
@@ -649,6 +656,7 @@ void actL90r(void){
 void actR90r(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, -(float)PP::PI_2, PP::Mu, o_s, &requ);
 
@@ -662,8 +670,8 @@ void actR90r(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNR90R_MAX_DIST) < 0.005f && IMin < SP.TURNR90R_MIN_DIST)
@@ -690,6 +698,7 @@ void actR90r(void){
 void actL180(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 
     oslen = MotionCalcTurn(SP.T180Speed, (float)PP::PI, SP.TL180Mu, o_s, &requ);
@@ -707,8 +716,8 @@ void actL180(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNL180_MAX_DIST) < SP.ERRDist && IMin <SP.TURNL180_MIN_DIST)
@@ -736,6 +745,7 @@ void actL180(void){
 void actR180(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 
     oslen = MotionCalcTurn(SP.T180Speed, -(float)PP::PI, SP.TR180Mu, o_s, &requ);
@@ -752,8 +762,8 @@ void actR180(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNR180_MAX_DIST) < SP.ERRDist && IMin < SP.TURNR180_MIN_DIST)
@@ -782,6 +792,7 @@ void actR180(void){
 void actL45o(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 
 	TskTop::SetLeds(0x0);
@@ -797,8 +808,8 @@ void actL45o(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNLO45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLO45_MIN_DIST)
@@ -824,6 +835,7 @@ void actL45o(void){
 void actR45o(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 	TskTop::SetLeds(0x0);
     oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
@@ -838,8 +850,8 @@ void actR45o(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNRO45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRO45_MIN_DIST)
@@ -865,6 +877,7 @@ void actR45o(void){
 void actL135o(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 	TskTop::SetLeds(0x0);
     oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 * 3.f/ 2.f, PP::Mu, o_s, &requ);
@@ -879,8 +892,8 @@ void actL135o(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNLO135_MAX_DIST) < SP.ERRDist  && IMin < SP.TURNLO135_MIN_DIST)
@@ -906,6 +919,7 @@ void actL135o(void){
 void actR135o(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
 	TskTop::SetLeds(0x0);
     oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 * 3.f / 2.f, PP::Mu, o_s, &requ);
@@ -920,8 +934,8 @@ void actR135o(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNRO135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRO135_MIN_DIST)
@@ -947,6 +961,7 @@ void actR135o(void){
 void actL90t(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2, PP::Mu, o_s, &requ);
 
@@ -961,8 +976,8 @@ void actL90t(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint =TskIr::IrDists.LS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNL90T_MAX_DIST) < SP.ERRDist && IMin < SP.TURNL90T_MIN_DIST)
@@ -988,6 +1003,7 @@ void actL90t(void){
 void actR90t(void){
     float requ;
     int i, vslen, oslen;
+    bool rtn;
     distZero = TskMotor::DistanceAcc;
     oslen = MotionCalcTurn(SP.RushSpeed, -(float)PP::PI_2, PP::Mu, o_s, &requ);
 
@@ -1001,8 +1017,8 @@ void actR90t(void){
     //use the pillar info to correct
     while(TskMotor::DistanceAcc - distZero < straightPre)
     {
-        if(!Semaphore_pend(SemActTick, 2))
-            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
 		IRint = TskIr::IrDists.RS;
 		if(IMin < 0.001f) IMin = IRint;
 		if(fabs(IRint - SP.TURNR90T_MAX_DIST) < SP.ERRDist && IMin < SP.TURNR90T_MIN_DIST)
@@ -1029,6 +1045,7 @@ void actR90t(void){
 void actCorrStart()
 {
     int i, len;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f;
 
     //update the grid info
@@ -1045,17 +1062,19 @@ void actCorrStart()
 	//Get wall info
     while(TskMotor::DistanceAcc - distZero < PP::StartTotalDist - PP::GetWallDist)
     {
-    	 if(!Semaphore_pend(SemActTick, 2))
-    	            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
     }
     GetWallInfo(&nextWall);
-    Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    rtn=Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
     WaitQEnd();
 }
 
 unsigned int  actCorrStop()
 {
     int i, len;
+    bool rtn;
     float stopDist;
     TskMotor::OmgAdj = 0.0f;
 
@@ -1073,8 +1092,8 @@ unsigned int  actCorrStop()
         while(fabsf(0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))
         		> PP::CenterToWall + PP::StopAccDist - CP.STOPEND_DIST_ADJ)
         {
-        	 if(!Semaphore_pend(SemActTick, 2))
-        	            System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
 
         }
         TskMotor::QMotor->Clear();
@@ -1088,8 +1107,8 @@ unsigned int  actCorrStop()
         while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > PP::PI / 180.f
         		|| fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.0025f)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
             TskMotor::OmgAdj = actHeadingDirCorrByFwdIr(&cur_wall);
 			TskMotor::LvAdj = actFwdDisCorrByFwdIr(&cur_wall);
         }
@@ -1112,6 +1131,7 @@ unsigned int  actCorrStop()
 void actCorrBack(WallStatus *wall)
 {
 	int i, len;
+	bool rtn;
 	TskMotor::OmgAdj = 0.0f;
 
 	float tht = wall->left? PP::PI_2 : -PP::PI_2;
@@ -1129,8 +1149,8 @@ void actCorrBack(WallStatus *wall)
         while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > PP::PI / 180.f
         		|| fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.0025f)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
             TskMotor::OmgAdj = actHeadingDirCorrByFwdIr(wall);
 			TskMotor::LvAdj = actFwdDisCorrByFwdIr(wall);
         }
@@ -1148,6 +1168,7 @@ void actCorrBack(WallStatus *wall)
 void actCorrRestart()
 {
     int i, len;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
 
     len = MotionCalcFwd(0.0f, PP::SearchSpeed, PP::RestartDist, v_s);
@@ -1158,11 +1179,12 @@ void actCorrRestart()
 	//Get wall info
     while(TskMotor::DistanceAcc - distZero < PP::RestartDist - PP::GetWallDist)
     {
-    	 if(!Semaphore_pend(SemActTick, 2))
-    	            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
     }
     GetWallInfo(&nextWall);
-    Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    rtn=Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     WaitQEnd();
 }
@@ -1186,6 +1208,7 @@ void actCorrStopBack()
 void actCorrFwd()
 {
     int i, len;
+    bool rtn;
     TskMotor::OmgAdj = 0.0f;
     bool posted = 0;
     //update the grid info
@@ -1200,8 +1223,8 @@ void actCorrFwd()
     	while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRSIDE_START_DIST)
         {
     		TskTop::SetLeds(0x8);
-            if(!Semaphore_pend(SemActTick, 2))
-                System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
             TskMotor::OmgAdj = actHeadingDirCorrBySideIrSide(&cur_wall);
         }
         TskMotor::OmgAdj = 0.0f;
@@ -1209,8 +1232,8 @@ void actCorrFwd()
 
         while(TskMotor::QMotor->Len() > 1)
         {
-            if(!Semaphore_pend(SemActTick, 2))
-                System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
             if(actFwdEndCorrBySideWallDisappear(&cur_wall,TskMotor::CurrentV,PP::SearchSpeed, TskMotor::DistanceAcc - distZero))
             {
             	TskTop::SetLeds(0x01);
@@ -1221,11 +1244,12 @@ void actCorrFwd()
     	//Get wall info
         while(TskMotor::DistanceAcc - distZero < PP::GridSize - PP::GetWallDist)
         {
-        	 if(!Semaphore_pend(SemActTick, 2))
-        	            System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
         }
         GetWallInfo(&nextWall);
-        Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+        rtn=Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
     }
 
     //TODO
@@ -1236,13 +1260,13 @@ void actCorrFwd()
         float lfMaxDist = -1.0f, rfMaxDist = -1.0f;
         while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BGNSTAT_POS)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
         }
         while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BEGIN_POS)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
             lfInt = TskIr::IrInts.sl;
             rfInt = TskIr::IrInts.sr;
             if(lfMaxDist < 0.0f)
@@ -1281,8 +1305,8 @@ void actCorrFwd()
 
         while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_END_POS)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
         	TskMotor::OmgAdj = -omgMax;
         }
         TskMotor::OmgAdj = 0.0f;
@@ -1290,8 +1314,8 @@ void actCorrFwd()
 
         while(TskMotor::DistanceAcc - distZero < PP::GridSize || TskMotor::QMotor->Len() > 0)
         {
-        	if(!Semaphore_pend(SemActTick, 2))
-        		System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
         	TskMotor::OmgAdj = omgMax;
 
         	//Get wall info
@@ -1300,7 +1324,8 @@ void actCorrFwd()
         		if(!posted)
         		{
 					GetWallInfo(&nextWall);
-					Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+					rtn=Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+			        Assert_isTrue(rtn,NULL);
 					posted = 1;
         		}
         	}
@@ -1316,6 +1341,7 @@ void actCorrFwd()
 void actCorrLR90(Act::ActType act)
 {
     float requ;
+    bool rtn;
     int i, vslen, oslen;
 
     //update the grid info
@@ -1341,8 +1367,8 @@ void actCorrLR90(Act::ActType act)
         while((act == Act::L90 ?TskIr::IrDists.FLns : TskIr::IrDists.FRns) >
         		requ + PP::CenterToWall - (act == Act::L90 ? CP.TURNLWAIT_DIST_ADJ : CP.TURNRWAIT_DIST_ADJ))
         {
-        	 if(!Semaphore_pend(SemActTick, 2))
-        		 System_abort("pend SemActTick failed!\n");
+            rtn = Semaphore_pend(SemActTick, 2);
+            Assert_isTrue(rtn,NULL);
 
          	TskTop::SetLeds(0x0f);
         }
@@ -1357,11 +1383,12 @@ void actCorrLR90(Act::ActType act)
 	//Get wall info
     while(TskMotor::DistanceAcc - distZero < PP::StartTotalDist - PP::GetWallDist)
     {
-    	 if(!Semaphore_pend(SemActTick, 2))
-    	            System_abort("pend SemActTick failed!\n");
+        rtn = Semaphore_pend(SemActTick, 2);
+        Assert_isTrue(rtn,NULL);
     }
     GetWallInfo(&nextWall);
-    Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    rtn=Mailbox_post(solve::MbAct, &nextWall, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     WaitQEnd();
 }
@@ -1375,7 +1402,7 @@ void task(UArg arg0, UArg arg1)
 
     actCurrAct = Act::Null;
     Act::ActType act;
-    bool flag;
+    bool flag,rtn;
 //    actCorrsInfo.fwdEnd = 0;
 //    actCorrsInfo.irSideDist = 0.0f;
 //    actCorrsInfo.turnWait = 0;
@@ -1387,7 +1414,8 @@ void task(UArg arg0, UArg arg1)
 
     while(true)
     {
-    	Mailbox_pend(MbCmd, &act, BIOS_WAIT_FOREVER);
+    	rtn=Mailbox_pend(MbCmd, &act, BIOS_WAIT_FOREVER);
+        Assert_isTrue(rtn,NULL);
         {
 //            actCurrWall.msk = ((INT32U)msg & 0x00700000) >> 20;
 //            wall.msk = ((INT32U)msg & 0x00700000) >> 20;
@@ -1499,7 +1527,8 @@ void task(UArg arg0, UArg arg1)
 
         }
 		end_msg = ActMsg::Action_ed;
-		Mailbox_post(TskTop::MbCmd, &end_msg, BIOS_NO_WAIT);
+		rtn=Mailbox_post(TskTop::MbCmd, &end_msg, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
     }
 }
 
@@ -1507,7 +1536,7 @@ void Init()
 {
     Task_Params tskParams;
 
-    MbCmd = Mailbox_create(4, 4, NULL, NULL);
+    MbCmd = Mailbox_create(sizeof(Act::ActType), 4, NULL, NULL);
     if(MbCmd == NULL)
         System_abort("create TskAction::MbCmd failed.\n");
 

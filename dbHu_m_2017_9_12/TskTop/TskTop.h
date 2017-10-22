@@ -37,13 +37,12 @@ public:
     };
 };
 
-extern short info_flag;
 extern Mailbox_Handle MbCmd;
 extern volatile MouseMode::ModeType Mode;
-extern char dbgStr[100];
+extern char dbgStr[128];
 void Init();
 void SetLeds(unsigned char val);
-void actPrint(TskAction::Act::ActType act, char *str);
+void actPrint(TskAction::Act::ActType act);
 
 }
 

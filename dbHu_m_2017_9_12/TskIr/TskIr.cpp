@@ -5,11 +5,12 @@
  *      Author: loywong
  */
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <math.h>
 #include <stdio.h>
 
-#include <ti/sysbios/hal/Timer.h>
+#include <ti/sysbios/hal/Hwi.h>
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Mailbox.h>
 #include <ti/sysbios/knl/Semaphore.h>
@@ -21,6 +22,8 @@
 #include <inc/hw_gpio.h>
 #include <inc/hw_memmap.h>
 #include <inc/hw_types.h>
+#include <inc/hw_timer.h>
+#include <inc/hw_ints.h>
 
 #include "../TskIr/IrCorr.h"
 #include "../TskIr/TskIr.h"
@@ -32,16 +35,12 @@ namespace TskIr
 {
 
 const int tskPrio = 10;
-const int tskStkSize = 1536;
+const int tskStkSize = 1024;
 Task_Handle tsk;
 
 Semaphore_Handle SemIrAdcFinish;
 
 Mailbox_Handle MbCmd;
-
-Timer_Handle irTimer;
-Timer_Params irTimerParams;
-const int irTimerId = 5;//Timer_ANY;
 
 IrLookupTable IrLTs = {0};
 IrApproxCoef IrACs = {0.f};
@@ -54,7 +53,7 @@ volatile IrHeadingYaw IrYaw;
 
 volatile unsigned short irZeros[4] = {1, 1, 1, 1};
 
-char dbgStr[48];
+char dbgStr[128];
 
 inline float irDistFwd()
 {
@@ -96,8 +95,6 @@ const char *IrChNames[] = {
 
 volatile bool irEmitEnable = false;
 
-const short irEmitTime = 20;    // unit : microSec
-
 volatile DBMOUSE_GPIOName irEmitterNo = DBMOUSE_IR_FL;
 
 const int adcCh[4] = {0x3, 0x7, 0x1, 0x5};
@@ -113,11 +110,15 @@ inline unsigned short adcReadCode()
     return HWREG(ADC0_BASE | ADC_O_SSFIFO3);
 }
 
-void irTimerHooker(UArg arg)
+void irTimerISR(UArg arg)
 {
-    static int i = 0;
+//    static int i = 0;
 //	unsigned int key;
 //	key = Hwi_disable();
+    HWREG(TIMER5_BASE | TIMER_O_CTL) &= ~0x00000001; // GPTM Timer A disable
+    HWREG(TIMER5_BASE | TIMER_O_ICR) |= 0x00000001;      // clear TimerA timeout int
+    Hwi_clearInterrupt(INT_TIMER5A_TM4C129);
+
     if(irEmitterNo == 0)
     {
     	adcReadCode();
@@ -127,7 +128,9 @@ void irTimerHooker(UArg arg)
         GPIO_write(irEmitterNo, 0);
         irEmitterNo = (DBMOUSE_GPIOName)(irEmitterNo + 1);
         GPIO_write(irEmitterNo, irEmitEnable? 1 : 0);
-        Timer_start(irTimer);
+
+        HWREG(TIMER5_BASE | TIMER_O_TAV) = 1200; // GPTM Timer A value 1200 10us
+        HWREG(TIMER5_BASE | TIMER_O_CTL) |= 0x00000001; // GPTM Timer A enable
     }
     else if(irEmitterNo < 3)
     {
@@ -139,7 +142,8 @@ void irTimerHooker(UArg arg)
         GPIO_write(irEmitterNo, 0);
         irEmitterNo = (DBMOUSE_GPIOName)(irEmitterNo + 1);
         GPIO_write(irEmitterNo, irEmitEnable? 1 : 0);
-        Timer_start(irTimer);
+        HWREG(TIMER5_BASE | TIMER_O_TAV) = 1200; // GPTM Timer A value 1200 10us
+        HWREG(TIMER5_BASE | TIMER_O_CTL) |= 0x00000001; // GPTM Timer A enable
     }
     else if(irEmitterNo == 3)
     {
@@ -150,7 +154,8 @@ void irTimerHooker(UArg arg)
         // 3off
         GPIO_write(irEmitterNo, 0);
         irEmitterNo = (DBMOUSE_GPIOName)(irEmitterNo + 1);
-        Timer_start(irTimer);
+        HWREG(TIMER5_BASE | TIMER_O_TAV) = 1200; // GPTM Timer A value 1200 10us
+        HWREG(TIMER5_BASE | TIMER_O_CTL) |= 0x00000001; // GPTM Timer A enable
     }
     else if(irEmitterNo == 4)
     {
@@ -174,9 +179,12 @@ void irDetStart()
     irEmitterNo = DBMOUSE_IR_FL;
     GPIO_write(irEmitterNo, irEmitEnable? 1 : 0);
 //    Timer_setPeriodMicroSecs(irTimer, irEmitTime);
-    Timer_start(irTimer);
+    HWREG(TIMER5_BASE | TIMER_O_TAV) = 1200; // GPTM Timer A value 1200 10us
+    HWREG(TIMER5_BASE | TIMER_O_CTL) |= 0x00000001; // GPTM Timer A enable
 }
 
+Hwi_Handle hwiTimer5Handle;
+Hwi_Params hwiTimer5Params;
 void irDetInit()
 {
     Semaphore_Params semParams;
@@ -186,14 +194,20 @@ void irDetInit()
     if(SemIrAdcFinish == NULL)
         System_abort("create SemIrAdcFinish failed.\n");
 
-    Timer_Params_init(&irTimerParams);
-    irTimerParams.period = irEmitTime;
-    irTimerParams.runMode = Timer_RunMode_ONESHOT;//Timer_RunMode_DYNAMIC;
-    irTimerParams.startMode = Timer_StartMode_USER;
-    irTimer = Timer_create(irTimerId, irTimerHooker, &irTimerParams, NULL);
-//    Hwi_enableInterrupt(INT_QEI1_TM4C123);
-    if(irTimer == NULL)
-        System_abort("create irTimer failed!\n");
+    HWREG(SYSCTL_RCGCTIMER) |= 0x000000020;            // enable Timer5
+    GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+    HWREG(TIMER5_BASE | TIMER_O_CTL) &= ~0x00000001; // GPTM Timer A clear
+    HWREG(TIMER5_BASE | TIMER_O_CFG) = 0x00000000;   // 32-bit timer configuration
+    HWREG(TIMER5_BASE | TIMER_O_TAMR) = 0x00000002;  // Timer A period mode.
+    HWREG(TIMER5_BASE | TIMER_O_TAILR) = 1200; // Timer A count down 1200  10us
+    HWREG(TIMER5_BASE | TIMER_O_IMR) = 0x00000001;  // Timer A timeout interrupt
+    Hwi_Params_init(&hwiTimer5Params);
+    hwiTimer5Params.priority = 240;
+    hwiTimer5Params.maskSetting = Hwi_MaskingOption_ALL;
+    hwiTimer5Handle = Hwi_create(INT_TIMER5A_TM4C129, irTimerISR, &hwiTimer5Params, NULL);
+    Hwi_clearInterrupt(INT_TIMER5A_TM4C129);
+    // HWREG(TIMER5_BASE | TIMER_O_CTL) |= 0x00000001;  // GPTM Timer A enable
+    HWREG(TIMER5_BASE | TIMER_O_ICR) = 0x00000001;  // clear TimerA timeout int
 
 //    Timer_Status sts[6];
 //    int num = Timer_getNumTimers();
@@ -291,6 +305,7 @@ void irCalcs()
 
 void task(UArg arg0, UArg arg1)
 {
+    bool rtn;
     IrMsg::MsgType msg;
 
     int staticCnt = 0, staticCntCyced;
@@ -324,15 +339,15 @@ void task(UArg arg0, UArg arg1)
     while(true)
     {
 //        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        if(!Semaphore_pend(SemIrTick, 2))
-            System_abort("pend SemIrTick failed!\n");
+        rtn=Semaphore_pend(SemIrTick, 2);
+        Assert_isTrue(rtn,NULL);
 //        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
 
         irDetStart();
 
 //        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        if(!Semaphore_pend(SemIrAdcFinish, 2))
-            System_abort("pend SemIrAdcFinish failed!\n");
+        rtn=Semaphore_pend(SemIrAdcFinish, 2);
+        Assert_isTrue(rtn,NULL);
 //        GPIO_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
 
         // calculate distances & bins
@@ -382,7 +397,7 @@ void Init()
 {
     Task_Params tskParams;
 
-    MbCmd = Mailbox_create(4, 4, NULL, NULL);
+    MbCmd = Mailbox_create(sizeof(IrMsg::MsgType), 4, NULL, NULL);
     if(MbCmd == NULL)
         System_abort("create TskIr::MbCmd failed.\n");
 

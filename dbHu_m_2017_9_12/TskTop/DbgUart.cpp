@@ -4,78 +4,100 @@
  *  Created on: Aug 14, 2016
  *      Author: loywong
  */
-
-#include <xdc/runtime/System.h>
-#include "../dbmouse_chassis.h"
-#include <ti/sysbios/knl/Semaphore.h>
-#include <ti/sysbios/knl/Task.h>
-#include <ti/drivers/UART.h>
-#include <ti/sysbios/BIOS.h>
+#include <file.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
+/* XDCtools Header files */
+#include <xdc/std.h>
+#include <xdc/runtime/Error.h>
+#include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
+
+/* BIOS Header files */
+#include <ti/sysbios/BIOS.h>
+#include <ti/sysbios/utils/Load.h>
+#include <ti/sysbios/knl/Task.h>
+#include <ti/sysbios/knl/Mailbox.h>
+
+/* TI-RTOS Header files */
+#include <ti/drivers/UART.h>
+
+#include "../dbmouse_chassis.h"
+#include "UARTUtils.h"
 #include "DbgUart.h"
+#include "TskTop.h"
+#include <ti/drivers/GPIO.h>
 
 UART_Handle dbgUart;
-Semaphore_Handle semDbgUart;
 
-void dbgUartWriteCb(UART_Handle handle, void *buf, size_t count)
+namespace TskPrint{
+
+const int tskPrio = 2;
+const int tskStkSize = 1024;
+Task_Params tskParams;
+Task_Handle tsk;
+
+Mailbox_Handle MbCmd;
+char msg[128];
+
+void task(UArg arg0, UArg arg1)
 {
-    Semaphore_post(semDbgUart);
-}
+    bool rtn;
+    /*
+     *  Add the UART device to the system.
+     *  All UART peripherals must be setup and the module must be initialized
+     *  before opening.  This is done by Board_initUART().  The functions used
+     *  are implemented in UARTUtils.c.
+     */
+    add_device("UART", _MSA, UARTUtils_deviceopen,
+               UARTUtils_deviceclose, UARTUtils_deviceread,
+               UARTUtils_devicewrite, UARTUtils_devicelseek,
+               UARTUtils_deviceunlink, UARTUtils_devicerename);
 
-// last char of str will be modified to '\n' if it's not '\n'
-bool DbgUartPutLine(char *str, bool wait)
-{
-    if(!Semaphore_pend(semDbgUart, BIOS_NO_WAIT))
-        return false;
+    /* Open UART0 for writing to stdout and set buffer */
+    freopen("UART:0", "w", stdout);
+    setvbuf(stdout, NULL, _IOLBF, 128);
 
-    int len = strlen(str);
-    if(str[len - 1] != '\n') str[len - 1] = '\n';
+    /* Open UART0 for reading from stdin and set buffer */
+    freopen("UART:0", "r", stdin);
+    setvbuf(stdin, NULL, _IOLBF, 128);
 
-    UART_write(dbgUart, str, strlen(str));
-
-    if(wait)
-    {
-        Semaphore_pend(semDbgUart, BIOS_WAIT_FOREVER);
-        Semaphore_post(semDbgUart);
+    /* Open UART0 for reading from stdin and set buffer */
+    freopen("UART:0", "w", stderr);
+    setvbuf(stderr, NULL, _IOLBF, 128);
+    /*
+     *  Initialize UART port 0 used by SysCallback.  This and other SysCallback
+     *  UART functions are implemented in UARTUtils.c. Calls to System_printf
+     *  will go to UART0, the same as printf.
+     */
+    UARTUtils_systemInit(0);
+    while(true){
+        rtn=Mailbox_pend(MbCmd, msg, BIOS_WAIT_FOREVER);
+        Assert_isTrue(rtn,NULL);
+        puts(msg);
+        Task_sleep(5);
     }
-    return true;
 }
 
-int DbgUartGetLine(char *str)
+void Init()
 {
-    int len;
-    len = UART_read(dbgUart, str, 20);
+    Task_Params_init(&tskParams);
+    tskParams.priority = tskPrio;
+    tskParams.stackSize = tskStkSize;
 
-    if(len > 0)
-        str[len-1] = '\0';
-    return len;
+    MbCmd = Mailbox_create(128, 10, NULL, NULL);
+    if(MbCmd == NULL)
+        System_abort("create TskPrint::MbCmd failed.\n");
+
+    tsk = Task_create((Task_FuncPtr)task, &tskParams, NULL);
+    if(tsk == NULL)
+    {
+        System_abort("Task Print failed");
+    }
+
 }
 
-void InitDbgUart()
-{
-    Semaphore_Params semParams;
-    Semaphore_Params_init(&semParams);
-    semParams.mode = Semaphore_Mode_BINARY;
-    semDbgUart = Semaphore_create(1, &semParams, NULL);
-    if(semDbgUart == NULL)
-        System_abort("create semDbgUart failed.\n");
-
-    UART_Params uartParams;
-    UART_Params_init(&uartParams);
-    uartParams.writeDataMode = UART_DATA_TEXT;
-    uartParams.readDataMode = UART_DATA_TEXT;
-    uartParams.readReturnMode = UART_RETURN_NEWLINE;
-    uartParams.readEcho = UART_ECHO_OFF;
-    uartParams.writeMode = UART_MODE_CALLBACK;
-    uartParams.readMode = UART_MODE_BLOCKING;
-    uartParams.baudRate = 115200;
-    uartParams.dataLength = UART_LEN_8;
-    uartParams.parityType = UART_PAR_NONE;
-    uartParams.stopBits = UART_STOP_ONE;
-    uartParams.writeCallback = dbgUartWriteCb;
-    dbgUart = UART_open(DBMOUSE_UART_DBG, &uartParams);
-    if(dbgUart == NULL)
-        System_abort("open UART failed!\n");
 }
-
 

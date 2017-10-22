@@ -37,6 +37,7 @@
 #include <ti/sysbios/BIOS.h>
 #include "TskTop/TskTop.h"
 #include "TskIr/IrCorr.h"
+#include "driverlib/fpu.h"
 #define testflash 0
 /*
  *  ======== main ========
@@ -44,9 +45,9 @@
 int main(void)
  {
 //    Task_Params taskParams;
-//    FPULazyStackingEnable();
-//    FPUEnable();
-
+    FPULazyStackingEnable();
+    FPUEnable();
+//    while(1);
 
     Board_initGeneral();
     Board_initGPIO();

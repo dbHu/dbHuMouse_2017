@@ -6,6 +6,7 @@
  */
 
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <ti/sysbios/knl/Mailbox.h>
 #include <ti/sysbios/BIOS.h>
@@ -24,7 +25,7 @@ namespace solve
 {
 #define RushTest 0
 const int tskPrio = 6;
-const int tskStkSize = 5120;
+const int tskStkSize = 4096;
 Task_Params tskParams;
 Task_Handle tsk;
 
@@ -33,25 +34,32 @@ Queue<TskAction::Act::ActType> *QAct;
 
 int GetNextWall()
 {
+    bool rtn;
 	TskAction::WallStatus wall;
-	Mailbox_pend(MbAct, &wall, BIOS_WAIT_FOREVER);
+	rtn=Mailbox_pend(MbAct, &wall, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 	return wall.msk;
 }
 
 void breakBeforeRun()
 {
+    bool rtn;
 	TskMotor::MotorMsg::MsgType motMsg;
 
 	Task_sleep(3000);
 	TskTop::SetLeds(0x0f);
 	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::DisableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::DisableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	Task_sleep(1000);
 
 	TskTop::SetLeds(0x00);
@@ -64,17 +72,21 @@ void breakBeforeRun()
 			TskMotor::DistanceAcc_en = 0.f;
 
 			motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-			Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+			rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	        Assert_isTrue(rtn,NULL);
 			Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
 
 			motMsg = TskMotor::MotorMsg::EnableAccl;
-			Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+			rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	        Assert_isTrue(rtn,NULL);
 
 			motMsg = TskMotor::MotorMsg::EnableGyro;
-			Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+			rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	        Assert_isTrue(rtn,NULL);
 
 			motMsg = TskMotor::MotorMsg::EnableMotors;
-			Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+			rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	        Assert_isTrue(rtn,NULL);
 
 			Task_sleep(100);// wait for all HW Enable
 			break;
@@ -85,6 +97,7 @@ void breakBeforeRun()
 int i=0;
 void SearchAndRun(bool flag)
 {
+    bool rtn;
 	TskAction::Act::ActType actMsg;
 	Micromouse::GridCoor Target(8, 8);
     Micromouse::Mouse m(16, 16, Target);
@@ -119,7 +132,8 @@ void SearchAndRun(bool flag)
 	turning = m.Step(wFwd, wLeft, wRight, &searchFinish);
 #endif
     actMsg = (TskAction::Act::ActType)(TskAction::Act::Start | TskAction::Act::Corr);
-	Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	int nextWall = GetNextWall();
     TskTop::SetLeds(0x0f);
 	while(true){
@@ -137,19 +151,22 @@ void SearchAndRun(bool flag)
 		{
 			case Micromouse::Turning::Forward:
 				actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
-				Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+				rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+		        Assert_isTrue(rtn,NULL);
 			    TskAction::Info[0] = 1;
 				nextWall = GetNextWall();
 				break;
 			case Micromouse::Turning::Left:
 				actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
-				Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+				rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+		        Assert_isTrue(rtn,NULL);
 				TskAction::Info[0] = 2;
 				nextWall = GetNextWall();
 				break;
 			case Micromouse::Turning::Right:
 				actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
-				Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+				rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+		        Assert_isTrue(rtn,NULL);
 				TskAction::Info[0] = 3;
 				nextWall = GetNextWall();
 				break;
@@ -157,7 +174,8 @@ void SearchAndRun(bool flag)
 				if(searchFinish)
 				{
 					actMsg = (TskAction::Act::ActType)(TskAction::Act::TBack | TskAction::Act::Corr);
-					Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+					rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+			        Assert_isTrue(rtn,NULL);
 					searchFinish = false;
 					breakBeforeRun();
 					actMsg = (TskAction::Act::ActType)(TskAction::Act::Start | TskAction::Act::Corr);
@@ -168,7 +186,8 @@ void SearchAndRun(bool flag)
 				else
 				{
 					actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
-					Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+					rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+			        Assert_isTrue(rtn,NULL);
 					TskAction::Info[0] = 5;
 					nextWall = GetNextWall();
 				}
@@ -196,8 +215,10 @@ void Rush()
     {
 		if(!QAct->De(actMsg))
 		    TskTop::SetLeds(0x0f);
-		Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
-		Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+		rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+		rtn=Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+        Assert_isTrue(rtn,NULL);
     }
 }
 
@@ -205,10 +226,11 @@ void Rush()
 void task(UArg arg0, UArg arg1)
 {
 	Solve::SolveType msg;
-	bool flag;
+	bool flag,rtn;
 	while(true){
 
-		Mailbox_pend(MbTop, &msg, BIOS_WAIT_FOREVER);
+		rtn=Mailbox_pend(MbTop, &msg, BIOS_WAIT_FOREVER);
+        Assert_isTrue(rtn,NULL);
 		switch(msg & 0xFF000000)
 		{
 			case Solve::ALGOTEST:
@@ -236,8 +258,8 @@ void Init()
     tskParams.priority = tskPrio;
     tskParams.stackSize = tskStkSize;
 
-    MbAct = Mailbox_create(4, 4, NULL, NULL);
-    MbTop = Mailbox_create(4, 4, NULL, NULL);
+    MbAct = Mailbox_create(sizeof(TskAction::WallStatus), 4, NULL, NULL);
+    MbTop = Mailbox_create(sizeof(Solve::SolveType), 4, NULL, NULL);
     if(MbAct == NULL || MbTop == NULL )
         System_abort("create solve::MbCmd failed.\n");
 

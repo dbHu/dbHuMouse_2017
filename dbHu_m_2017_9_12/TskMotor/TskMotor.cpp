@@ -7,9 +7,11 @@
 
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <stdlib.h>
 #include <math.h>
+#include<stdio.h>
 
 #include <ti/sysbios/knl/Mailbox.h>
 #include <ti/sysbios/knl/Semaphore.h>
@@ -32,6 +34,8 @@ namespace TskMotor
 
 const float dLvDefault = 0.0f;
 const float dAvDefault = 0.0f;
+
+char dbgStr[128];
 //
 //const float gyro_gain = (70e-3f * 3.1415927f / 180.0f / GYRO_UNIT_COMPENSATION);
 //const float accl_gain = (598.55e-6f / ACCL_UNIT_COMPENSATION);
@@ -60,7 +64,7 @@ bool AcclEnabled = false;
 bool AcqZerosEnabled = false;
 
 const int tskPrio = 12;
-const int tskStkSize = 2048;
+const int tskStkSize = 4096;
 Task_Handle tsk;
 //Error_Block eb;
 
@@ -96,7 +100,7 @@ void task(UArg arg0, UArg arg1)
 //    INT32S cnt = 0;//, tick;
 
     ImuValues imuVals;
-
+    bool rtn;
     // vars for zero acq
     int staticCnt = 0, staticCntCyced,i = 0, pwmCnt = 0;
     float gyroZZeroAcc = 0;
@@ -115,8 +119,6 @@ void task(UArg arg0, UArg arg1)
     // initial BaseTime
     BaseTimeInit();
 
-    Task_sleep(2);
-    
     WheelEncInit();
     // initial imu
     ImuInit();
@@ -129,13 +131,12 @@ void task(UArg arg0, UArg arg1)
 //    int iii = 0;
 //    char sss[20];
     ////////////////////////////////
-
     while(1)
     {
-//        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
-        if(!Semaphore_pend(SemMotTick, 2))
-            System_abort("pend SemMotTick failed!\n");
-//        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
+        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
+        rtn=Semaphore_pend(SemMotTick, 2);
+        Assert_isTrue(rtn,NULL);
+        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
 
         //TODO
         // read encder
@@ -159,7 +160,7 @@ void task(UArg arg0, UArg arg1)
             avPid.Reset();
             MotorEnabled = false;
             GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
-            DbgUartPutLine("error\r\n");
+            //DbgUartPutLine("error\r\n");
             Task_sleep(5000);
         }
 //////////////////////////////////////////////////
@@ -197,32 +198,36 @@ void task(UArg arg0, UArg arg1)
         DistanceAcc_en +=  EncVel * PP::Ts;
         AngleAcc += AV * PP::Ts;
 #if 0
-        MotorPwmSetDuty(80, 80);
+        MotorPwmSetDuty(40, 40);
 #endif
         if(MotorEnabled)
         {
             // read dlv&dav from fifo
             QMotor->De(desire); // dequeue, if empty desire will not change
-
-            if(desire.Omega > 0.f || desire.Velocity > 0.f)
+//            desire.Velocity = 0.05f;
+//            desire.Omega = 0.f;
+            if(desire.Omega > 0.f)
 			{
 //					TskAction::info.inf[i] = desire.Velocity;
 					//TskAction::info.cnt = i;
-                if(i < 512)
+                if(i < 200)
                 {
-                    if(TskTop::info_flag == 2)
-                    {
-                        TskAction::Info[i] = AV;
-                        TskAction::Desire[i] = desire.Omega;
-                    }
-                    else if(TskTop::info_flag == 1)
-                    {
-                        TskAction::Info[i] = kalOut.elem[0];
-                        TskAction::Desire[i] = DesireDistance;
-                    }
+                    TskAction::Info[i] = AV;
+                    TskAction::Desire[i] = desire.Omega;
                     i++;
                 }
-			}
+            }
+            else if(desire.Velocity > 0.f)
+            {
+//                  TskAction::info.inf[i] = desire.Velocity;
+                    //TskAction::info.cnt = i;
+                if(i < 200)
+                {
+                    TskAction::Info[i] = kalOut.elem[0];
+                    TskAction::Desire[i] = DesireDistance;
+                    i++;
+                }
+            }
 
             CurrentV = desire.Velocity + LvAdj;
             DesireDistance += CurrentV * PP::Ts;
@@ -251,6 +256,7 @@ void task(UArg arg0, UArg arg1)
         {
             staticCnt++;
             staticCntCyced = (staticCnt & 0x1FFF);  // cyced per 8.192s(@Ts=1ms)
+
             if(staticCntCyced == 127)               // desire static 127ms(@Ts=1ms), adj zero start
             {
                 gyroZZeroAcc = 0;
@@ -266,13 +272,18 @@ void task(UArg arg0, UArg arg1)
             {
                 GyroZZero = gyroZZeroAcc * (1.f / 512.f);
                 AcclXZero = acclXZeroAcc * (1.f / 512.f);
+                lvEstKal.Reset();
+                avPid.Reset();
+                sprintf(dbgStr, "gzero:%7.3f, azero:%7.3f\n",TskMotor::GyroZZero, TskMotor::AcclXZero);
+                rtn=Mailbox_post(TskPrint::MbCmd,dbgStr, BIOS_NO_WAIT);
+                Assert_isTrue(rtn,NULL);
                 //TskTop::SetLeds(0xA);
 //                    DbgUartPutLine("ImuAcq0s.\n", true);
 //                    err = OSQPost(IndicQ, (void *)INDIC_MSG_FINISH);
 #if DBG_PRINT_IMU_ZEROS > 0
-                sprintf(motorDbgString, "Imu Zeros, G: %5d; AX: %5d; AY: %5d; AZ: %5d\n", gyroZero, accxZero, accyZero, acczZero);
+//                sprintf(motorDbgString, "Imu Zeros, G: %5d; AX: %5d; AY: %5d; AZ: %5d\n", gyroZero, accxZero, accyZero, acczZero);
                 //err = DbgPrintString(&motorDbgInfo, motorDbgString);
-                DbgPuts(motorDbgString);
+//                Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
 #endif
             }
         }
@@ -288,16 +299,22 @@ void task(UArg arg0, UArg arg1)
                 DesireDistance = 0.f;
                 AngleAcc = 0.f;
                 DistanceAcc_en = 0.f;
-
+                pwmCnt = 0;
+                i = 0;
                 QMotor->Clear();
                 MotorPwmSetDuty(0, 0);
                 MotorEnabled = true;
                 break;
             case MotorMsg::DisableMotors:
                 MotorPwmCoast();
-//                lvPid.Reset();
+                QMotor->Clear();
+                lvEstKal.Reset();
                 avPid.Reset();
+                staticCntCyced = 0;
                 MotorEnabled = false;
+                sprintf(dbgStr, "V:%f, O:%f\n", desire.Velocity + LvAdj, desire.Omega + OmgAdj);
+                rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+                Assert_isTrue(rtn,NULL);
                 break;
 //            case MotorMsg::GetZeros:
 //                alt_ic_irq_disable(ENC_MOTOR_IRQ_INTERRUPT_CONTROLLER_ID, ENC_MOTOR_IRQ);
@@ -333,6 +350,7 @@ void task(UArg arg0, UArg arg1)
                 break;
             }
         }
+
 //////test
 //        if(cnt == 0)
 //        {
@@ -350,7 +368,7 @@ void Init()
 {
     Task_Params tskParams;
 
-    MbCmd = Mailbox_create(4, 4, NULL, NULL);
+    MbCmd = Mailbox_create(4, 10, NULL, NULL);
     if(MbCmd == NULL)
         System_abort("create TskMotor::MbCmd failed.\n");
 

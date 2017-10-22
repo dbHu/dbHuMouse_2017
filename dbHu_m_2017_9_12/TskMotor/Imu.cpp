@@ -8,6 +8,7 @@
 #include "../Board.h"
 
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Semaphore.h>
@@ -67,8 +68,9 @@ void ImuStartRead()
 
 bool ImuGetValues(ImuValues &imuVal)
 {
-    if(!Semaphore_pend(semIicFinish, 2))
-        return false;
+    bool rtn;
+    rtn=Semaphore_pend(semIicFinish, 2);
+    Assert_isTrue(rtn,NULL);
 
     imuVal.acclX = -AcclUnit * (float)(short)((imuData.axh << 8) | imuData.axl);
     imuVal.acclY = AcclUnit * (float)(short)((imuData.ayh << 8) | imuData.ayl);
@@ -86,6 +88,7 @@ bool ImuGetValues(ImuValues &imuVal)
 
 void ImuInit()
 {
+    bool rtn;
     Semaphore_Params_init(&semParams);
     semParams.mode = Semaphore_Mode_BINARY;
     semIicFinish = Semaphore_create(0, &semParams, NULL);
@@ -109,15 +112,15 @@ void ImuInit()
     iicTrans.readCount = 0;
 
     I2C_transfer(iicImu, &iicTrans);
-    if(!Semaphore_pend(semIicFinish, 2))
-        System_abort("Pend semIicFinish Failed!\n");
+    rtn=Semaphore_pend(semIicFinish, 2);
+    Assert_isTrue(rtn,NULL);
 
     iicTrans.writeBuf = imuInitSeq0;
     iicTrans.writeCount = 5;
 
     I2C_transfer(iicImu, &iicTrans);
-    if(!Semaphore_pend(semIicFinish, 2))
-        System_abort("Pend semIicFinish Failed!\n");
+    rtn=Semaphore_pend(semIicFinish, 2);
+    Assert_isTrue(rtn,NULL);
 
 
     ////////////////////////////////

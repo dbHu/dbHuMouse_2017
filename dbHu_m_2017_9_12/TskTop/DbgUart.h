@@ -8,10 +8,13 @@
 #ifndef TSKTOP_DBGUART_H_
 #define TSKTOP_DBGUART_H_
 
-void InitDbgUart();
+#include <ti/sysbios/knl/Mailbox.h>
 
-bool DbgUartPutLine(char *str, bool wait = false);
-
-int DbgUartGetLine(char *str);
+namespace TskPrint
+{
+	extern Mailbox_Handle MbCmd;
+	void Init();
+	bool DbgUartPutLine(char* str, bool wait);
+}
 
 #endif /* TSKTOP_DBGUART_H_ */

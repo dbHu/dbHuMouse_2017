@@ -24,6 +24,7 @@ ORDERED_OBJS += \
 "./TskMotor/WheelEnc.obj" \
 "./TskTop/DbgUart.obj" \
 "./TskTop/TskTop.obj" \
+"./TskTop/UARTUtils.obj" \
 "./TskTop/cmd.obj" \
 "./action/action.obj" \
 "./mmaze/mmaze.obj" \
@@ -182,7 +183,7 @@ all: $(OBJS) $(CMD_SRCS) $(LDS_SRCS) $(GEN_CMDS)
 dbHu_mouse.out: $(OBJS) $(CMD_SRCS) $(LDS_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O2 --define=ccs="ccs" --define=PART_TM4C1294NCPDT --define=ccs --define=TIVAWARE -g --gcc --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"dbHu_mouse.map" --heap_size=1024 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="dbHu_mouse_linkInfo.xml" --rom_model -o "dbHu_mouse.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O3 --define=ccs="ccs" --define=PART_TM4C1294NCPDT --define=ccs --define=TIVAWARE -g --gcc --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"dbHu_mouse.map" --heap_size=1024 --stack_size=512 -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="dbHu_mouse_linkInfo.xml" --rom_model -o "dbHu_mouse.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -196,8 +197,8 @@ dbHu_mouse.hex: $(EXE_OUTPUTS)
 clean:
 	-$(RM) $(GEN_CMDS__QUOTED)$(GEN_MISC_FILES__QUOTED)$(BIN_OUTPUTS__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)$(GEN_OPTS__QUOTED)
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
-	-$(RM) "dbmouse.obj" "dbmouse_chassis.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "TskTop\cmd.obj" "action\action.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\solve.obj" 
-	-$(RM) "dbmouse_chassis.d" 
+	-$(RM) "dbmouse.obj" "dbmouse_chassis.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "TskTop\UARTUtils.obj" "TskTop\cmd.obj" "action\action.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\solve.obj" 
+	-$(RM) "dbmouse_chassis.d" "TskTop\UARTUtils.d" 
 	-$(RM) "dbmouse.d" "Kalman\Kalman1Var.d" "Kalman\Kalman2Var.d" "Pid\Pid.d" "Queue\Queue.d" "TskIr\IrCorr.d" "TskIr\TskIr.d" "TskMotor\Imu.d" "TskMotor\MotorPwm.d" "TskMotor\TskMotor.d" "TskMotor\WheelEnc.d" "TskTop\DbgUart.d" "TskTop\TskTop.d" "TskTop\cmd.d" "action\action.d" "mmaze\mmaze.d" "mouse\mouse.d" "solve\solve.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

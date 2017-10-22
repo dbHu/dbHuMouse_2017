@@ -182,10 +182,10 @@ GPIO_PinConfig gpioPinConfigs[] = {
          *PK0 ENCLA
          *PK1 ENCLB
          */
-        GPIOTiva_PE_4 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PB_5 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PK_0 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
-        GPIOTiva_PK_1 | GPIO_CFG_IN_NOPULL | GPIO_CFG_IN_INT_BOTH_EDGES,
+       GPIOTiva_PE_4 | GPIO_CFG_IN_NOPULL,
+       GPIOTiva_PB_5 | GPIO_CFG_IN_NOPULL,
+       GPIOTiva_PK_0 | GPIO_CFG_IN_NOPULL,
+       GPIOTiva_PK_1 | GPIO_CFG_IN_NOPULL,
 
         /* DBMOUSE_LED_0 R*/
         GPIOTiva_PD_2 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH,
@@ -204,8 +204,10 @@ GPIO_PinConfig gpioPinConfigs[] = {
  *       reduce memory usage (if placed at end of gpioPinConfigs array).
  */
 GPIO_CallbackFxn gpioCallbackFunctions[] = {
-    NULL,  /* DBMOUSE_GPIO_SW1 */
-    NULL   /* DBMOUSE_GPIO_SW2 */
+//    NULL,  /* DBMOUSE_GPIO_SW1 */
+//    NULL,   /* DBMOUSE_GPIO_SW2 */
+//    NULL,
+//    NULL
 };
 
 /* The device-specific GPIO_config structure */

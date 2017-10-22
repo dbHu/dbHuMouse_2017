@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 
 #include <ti/sysbios/BIOS.h>
 #include <ti/drivers/GPIO.h>
@@ -31,7 +32,7 @@ namespace TskTop
 {
 
 const int tskPrio = 4;
-const int tskStkSize = 2048;
+const int tskStkSize = 4096;
 Task_Params tskParams;
 Task_Handle tsk;
 //Error_Block eb;
@@ -40,14 +41,17 @@ Task_Handle tsk;
 #define testRushOAct   0
 Mailbox_Handle MbCmd;
 
-char dbgStr[100];
-short info_flag = 0;
+char dbgStr[128];
 
 volatile MouseMode::ModeType Mode;
 
 void doIrCorrection()
 {
-    DbgUartPutLine("Starting Ir Correction precedure. Wait seconds plz...\n", true);
+    bool rtn;
+    sprintf(dbgStr, "Starting Ir Correction precedure. Wait seconds plz...\n");
+    rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
+    Task_sleep(50);
 
     TskMotor::MotorMsg::MsgType motMsg;
     TskIr::IrMsg::MsgType irMsg;
@@ -55,23 +59,28 @@ void doIrCorrection()
     Task_sleep(1000);
 
     motMsg = TskMotor::MotorMsg::DisableMotors;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
     irMsg = TskIr::IrMsg::DisableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     /*
      *use encoder as the condition to get ir data
      */
     motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     Task_sleep(1000);   // wait for getting imu zeros & ir zeros
 
     motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     irMsg = TskIr::IrMsg::EnableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
     Task_sleep(200);
 
@@ -81,37 +90,43 @@ void doIrCorrection()
 void encImuMonitor()
 {
     int i = 0;
+    bool rtn;
     TskMotor::MotorMsg::MsgType motMsg;
     TskIr::IrMsg::MsgType irMsg;
 
-	DbgUartPutLine("verson 2.5.2\n", true);
+	sprintf(dbgStr, "verson 2.5.2\n");
     Task_sleep(1000);
 
     motMsg = TskMotor::MotorMsg::DisableMotors;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
     irMsg = TskIr::IrMsg::DisableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
     motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
 
     motMsg = TskMotor::MotorMsg::EnableAccl;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
     motMsg = TskMotor::MotorMsg::EnableGyro;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
     irMsg = TskIr::IrMsg::EnableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
-
-    TskMotor::DistanceAcc = 0.f;
-    TskMotor::DistanceAcc_en = 0.f;
-    TskMotor::AngleAcc = 0.f;
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     while(true)
     {
         if(!(i++ & 0xf))
         {
-            DbgUartPutLine( "\nGyroZ AXZero AcclX EncVel KalVel DisAcc AngAcc\r\n", true);
+            sprintf(dbgStr, "\nGyroZ AXZero AcclX EncVel KalVel DisAcc AngAcc\r\n");
+            rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+            Assert_isTrue(rtn,NULL);
+            Task_sleep(50);
         }
         sprintf(dbgStr, "%7.3f,%7.3f,%7.3f,%7.3f,%7.4f,%7.4f,%8.3f,%8.3f\r\n",
                 TskMotor::GyroZZero, TskMotor::AV,
@@ -120,9 +135,9 @@ void encImuMonitor()
                 TskMotor::DistanceAcc,
                 //TskMotor::DistanceAcc_en,
                 TskMotor::AngleAcc);
-        Task_sleep(300);
-        DbgUartPutLine(dbgStr, true);
-        Task_sleep(200);
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(500);
         if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
             break;
     }
@@ -133,32 +148,44 @@ void encImuMonitor()
 void irMonitor()
 {
     int i=0;
+    bool rtn;
     TskMotor::MotorMsg::MsgType motMsg;
     TskIr::IrMsg::MsgType irMsg;
 
     Task_sleep(1000);
 
     motMsg = TskMotor::MotorMsg::DisableMotors;
-    Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     irMsg = TskIr::IrMsg::DisableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     Task_sleep(100);
 
     irMsg = TskIr::IrMsg::EnableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     while(true)
     {
        if(!(i++ & 0xf))
        {
-           DbgUartPutLine( "\tAve:b\t  LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\r\n", true);
+           sprintf(dbgStr, "\tAve:b\t  LFwd:b\t   RFwd:b\t  LSide:b\t  RSide:b\t  HdbyL\t  HdbyR\tHdbyFLR\r\n");
+           rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+           Assert_isTrue(rtn,NULL);
+           Task_sleep(50);
        }
-       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
+       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d",
                .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
                TskIr::IrDists.FLns, TskIr::IrBins.FLns,
-               TskIr::IrDists.FRns, TskIr::IrBins.FRns,
+               TskIr::IrDists.FRns, TskIr::IrBins.FRns
+       );
+       rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+       Assert_isTrue(rtn,NULL);
+       Task_sleep(50);
+       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
                TskIr::IrDists.LS, TskIr::IrBins.LS,
                TskIr::IrDists.RS, TskIr::IrBins.RS,
                TskIr::IrYaw.byLS * 180.f / 3.1415927f,
@@ -167,20 +194,20 @@ void irMonitor()
                // TskIr::IrInts.sl,
                // TskIr::IrInts.sr
         );
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
 		// sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
 		// 		TskIr::IrInts.fl, TskIr::IrDists.FLns,
 		// 		TskIr::IrInts.fr, TskIr::IrDists.FRns,
 		// 		TskIr::IrInts.sl, TskIr::IrDists.LS,
 		// 		TskIr::IrInts.sr, TskIr::IrDists.RS
 		// );
-        Task_sleep(300);
-        DbgUartPutLine(dbgStr, true);
-        Task_sleep(200);
-//        if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
-//            break;
+        Task_sleep(500);
+        if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
+            break;
     }
 
-//    Mode = MouseMode::Idle;
+    Mode = MouseMode::Idle;
 }
 
 void uartCmd()
@@ -190,8 +217,7 @@ void uartCmd()
 
 void actionTest(void)
 {
-    float pre=0.f,post=0.f;
-    char str[128];
+    bool rtn;
     TskTop::SetLeds(0x7);
     TskAction::Act::ActType actMsg;
     TskAction::ActMsg::MsgType end_Msg;
@@ -200,29 +226,41 @@ void actionTest(void)
     {
         TskTop::SetLeds(0x2);
         MotorStart();
-        actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
-        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
-        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
-        actMsg = (TskAction::Act::ActType)(TskAction::Act::L90);
-        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
-        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
-        actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
-        Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
-        Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
-        TskAction::WaitQEnd();
-        Task_sleep(50);
-        MotorStop();
+        TskIr::WaitIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200);
+        {
+            actMsg = (TskAction::Act::ActType)(TskAction::Act::Start);
+            rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+            Assert_isTrue(rtn,NULL);
+            Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            Assert_isTrue(rtn,NULL);
+            actMsg = (TskAction::Act::ActType)(TskAction::Act::L90);
+            rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+            Assert_isTrue(rtn,NULL);
+            rtn=Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            Assert_isTrue(rtn,NULL);
+            actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
+            rtn=Mailbox_post(TskAction::MbCmd, &actMsg, BIOS_NO_WAIT);
+            Assert_isTrue(rtn,NULL);
+            rtn=Mailbox_pend(TskTop::MbCmd, &end_Msg, BIOS_WAIT_FOREVER);
+            Assert_isTrue(rtn,NULL);
+            TskAction::WaitQEnd();
+            Task_sleep(50);
+            MotorStop();
+        }
         sprintf(dbgStr, "%6.3f,%6.3f,%6.3f\r\n",
             TskMotor::DistanceAcc,
             TskMotor::DistanceAcc_en,
             TskMotor::AngleAcc);
-        DbgUartPutLine(dbgStr, true);
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
     }
 }
 
 void solveTest()
 {
+    bool rtn;
 	TskMotor::MotorMsg::MsgType motMsg;
 	solve::Solve::SolveType msg;
 
@@ -245,20 +283,25 @@ void solveTest()
 	Task_sleep(1000);
 
 	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
 	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
 
 //	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+//	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
 	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
 	Task_sleep(100);// wait for all HW Enable
 
@@ -267,31 +310,37 @@ void solveTest()
 	TskMotor::DistanceAcc_en = 0.f;
 
 	SetLeds(0x00);
-	DbgUartPutLine("verson 2.7.0\n", true);
 
-	Mailbox_post(solve::MbTop, &msg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(solve::MbTop, &msg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	while(true)
 	{
         sprintf(dbgStr, "%2.1f %2.1f %7.3f %7.3f %7.3f %7.3f\t\n",TskAction::Info[0],TskAction::Info[1],
         		TskAction::Info[2],TskAction::Info[3],TskAction::Info[4],TskAction::Info[5]);
-        DbgUartPutLine(dbgStr, true);
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
 		Task_sleep(200);
 	}
 }
 
 void clearMazeInfo()
 {
+    bool rtn;
     TskIr::eraseFlashBlock(62);
     SetLeds(0x1);
     Task_sleep(500);
     SetLeds(0x0);
     Task_sleep(500);
-    DbgUartPutLine("Erase Ok\n", true);
+    sprintf(dbgStr, "Erase Ok\n");
+    rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
+    Task_sleep(50);
 
 }
 
 void RushTest()
 {
+    bool rtn;
 	TskMotor::MotorMsg::MsgType motMsg;
 	solve::Solve::SolveType msg;
 
@@ -299,20 +348,25 @@ void RushTest()
 
 	Task_sleep(1000);
 	motMsg = TskMotor::MotorMsg::DisableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableAcqZeros;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
 	Task_sleep(1000);// wait for getting imu zeros & getting ir zeros
 
 //	motMsg = TskMotor::MotorMsg::DisableAcqZeros;
-//	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+//	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
 	motMsg = TskMotor::MotorMsg::EnableAccl;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableMotors;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 	motMsg = TskMotor::MotorMsg::EnableGyro;
-	Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(TskMotor::MbCmd, &motMsg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
 	Task_sleep(100);// wait for all HW Enable
 
@@ -321,7 +375,8 @@ void RushTest()
 	TskMotor::DistanceAcc_en = 0.f;
 
 	msg = solve::Solve::RUSHTEST;
-	Mailbox_post(solve::MbTop, &msg, BIOS_NO_WAIT);
+	rtn=Mailbox_post(solve::MbTop, &msg, BIOS_NO_WAIT);
+    Assert_isTrue(rtn,NULL);
 
 	while(true)
 	{
@@ -336,132 +391,161 @@ void SetLeds(unsigned char val)
     GPIO_write(DBMOUSE_LED_2, (val & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
 }
 
-void actPrint(TskAction::Act::ActType act, char *str)
+void actPrint(TskAction::Act::ActType act)
 {
-	switch(act)
-	{
-	case TskAction::Act::Start:
-        sprintf(str, "Act Start.\n");
-        break;
-	case TskAction::Act::Stop:
-        sprintf(str, "Act Stop.\n");
-        break;
-	case TskAction::Act::Back:
-        sprintf(str, "Act Back.\n");
-        break;
-	case TskAction::Act::Restart:
-        sprintf(str, "Act Restart.\n");
-        break;
-	case TskAction::Act::Fwd:
-        sprintf(str, "Act Fwd.\n");
-        break;
-	case TskAction::Act::L90:
-        sprintf(str, "Act L90.\n");
-        break;
-	case TskAction::Act::R90:
-        sprintf(str, "Act R90.\n");
-        break;
-	case TskAction::Act::Null:
-        sprintf(str, "Act Null.\n");
-        break;
-	}
-}
-
-void modeName(MouseMode::ModeType mode, char *str)
-{
-    switch(mode)
+    bool rtn;
+    switch(act)
     {
-    case MouseMode::EncImuMonitor:
-        sprintf(str, "Mode Enc & Imu Monitor.Touch Ir to start\r\n");
+    case TskAction::Act::Start:
+        sprintf(dbgStr, "Act Start.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::IrMonitor:
-        sprintf(str, "Mode Ir Monitor.Touch Ir to start\r\n");
+    case TskAction::Act::Stop:
+        sprintf(dbgStr, "Act Stop.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::IrCorrection:
-        sprintf(str, "Mode Ir Correction.Touch Ir to start.\r\n");
+    case TskAction::Act::Back:
+        sprintf(dbgStr, "Act Back.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::UartCmd:
-        sprintf(str, "Mode Listen Uart Command.\r\n");
+    case TskAction::Act::Restart:
+        sprintf(dbgStr, "Act Restart.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::ActionTest:
-        sprintf(str, "Mode ActionTest.Touch Ir to start.\r\n");
+    case TskAction::Act::Fwd:
+        sprintf(dbgStr, "Act Fwd.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::SolveTest:
-        sprintf(str, "Mode SolveTest.Touch Ir to start.\r\n");
+    case TskAction::Act::L90:
+        sprintf(dbgStr, "Act L90.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::Undef1:
-        sprintf(str, "Mode Undef1.\n");
+    case TskAction::Act::R90:
+        sprintf(dbgStr, "Act R90.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
-    case MouseMode::Undef2:
-        sprintf(str, "Mode Undef2.\n");
-        break;
-    case MouseMode::Undef3:
-        sprintf(str, "Mode Undef3.\n");
-        break;
-    case MouseMode::Gaming1:
-        sprintf(str, "Mode Gaming1.Touch Ir & GO!\n");
-        break;
-    case MouseMode::Gaming2:
-        sprintf(str, "Mode Gaming2.Touch Ir & GO!\n");
-        break;
-    case MouseMode::Gaming3:
-        sprintf(str, "Mode Gaming3.Touch Ir & GO!\n");
-        break;
-    case MouseMode::Gaming4:
-        sprintf(str, "Mode Gaming4.Touch Ir & GO!\n");
-        break;
-    case MouseMode::ClearMaze:
-        sprintf(str, "Mode Clear Maze Info.Touch Ir start!\n");
-        break;
-    default:
-        sprintf(str, "Undefined mode.\r\n");
+    case TskAction::Act::Null:
+        sprintf(dbgStr, "Act Null.\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
         break;
     }
 }
 
-inline void dbgPutModeName(MouseMode::ModeType mode)
+void dbgPutModeName(MouseMode::ModeType mode)
 {
-    modeName(mode, dbgStr);
-    DbgUartPutLine(dbgStr, true);
+    bool rtn;
+    switch(mode)
+    {
+    case MouseMode::EncImuMonitor:
+        sprintf(dbgStr, "Mode Enc & Imu Monitor.Touch Ir to start\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::IrMonitor:
+        sprintf(dbgStr, "Mode Ir Monitor.Touch Ir to start\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::IrCorrection:
+        sprintf(dbgStr, "Mode Ir Correction.Touch Ir to start.\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::UartCmd:
+        sprintf(dbgStr, "Mode Listen Uart Command.\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::ActionTest:
+        sprintf(dbgStr, "Mode ActionTest.Touch Ir to start.\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::SolveTest:
+        sprintf(dbgStr, "Mode SolveTest.Touch Ir to start.\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    case MouseMode::ClearMaze:
+        sprintf(dbgStr, "Mode Clear Maze Info.Touch Ir start!\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    default:
+        sprintf(dbgStr, "Undefined mode.\r\n");
+        rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_NO_WAIT);
+        Assert_isTrue(rtn,NULL);
+        Task_sleep(50);
+        break;
+    }
 }
 
 void task(UArg arg0, UArg arg1)
 {
-
-    TskIr::IrMsg::MsgType irMsg;
-
+    bool rtn;
     Task_sleep(1000);
 
     SetLeds(0x01);
-    Task_sleep(1500);
+    Task_sleep(100);
     SetLeds(0x02);
-    Task_sleep(1500);
+    Task_sleep(100);
     SetLeds(0x04);
-    Task_sleep(1500);
+    Task_sleep(100);
     SetLeds(0x00);
 
-    InitDbgUart();
-
-    DbgUartPutLine("Hello from dbmouse!\r\n",true);
-
     Task_sleep(1000);
-    TskAction::Init();
+
+    TskPrint::Init();
     TskMotor::Init();
     TskIr::Init();
+    TskAction::Init();
     solve::Init();
 
+    sprintf(dbgStr, "Hello from dbmouse!\n");
+    rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
+    Task_sleep(50);
+
+    TskIr::IrMsg::MsgType irMsg;
     irMsg = TskIr::IrMsg::EnableEmitt;
-    Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_NO_WAIT);
+    rtn=Mailbox_post(TskIr::MbCmd, &irMsg, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
 
     Task_sleep(500);
-    DbgUartPutLine("Roll wheel to change mode...\r\n",true);
+    sprintf(dbgStr, "Roll wheel to change mode...\r\n");
+    rtn=Mailbox_post(TskPrint::MbCmd, dbgStr, BIOS_WAIT_FOREVER);
+    Assert_isTrue(rtn,NULL);
+    Task_sleep(50);
 
     MouseMode::ModeType lastMode = Mode = MouseMode::Idle;
     SetLeds(Mode);
     dbgPutModeName(Mode);
     while(true)
     {
-   	    //Mode = (MouseMode::ModeType)2;
+//   	     Mode = (MouseMode::ModeType)1;
          Mode = (MouseMode::ModeType)(lroundf(TskMotor::DistanceAcc_en * 100.f) & 7);
          if(Mode != lastMode)
          {
@@ -508,7 +592,7 @@ void task(UArg arg0, UArg arg1)
 //    while(true)
 //    {
 //        Task_sleep(500);
-////        System_printf("%d\n", lroundf(TskMotor::DistanceAcc * 10000.f));
+////        System_sprintf(dbgStr, "%d\n", lroundf(TskMotor::DistanceAcc * 10000.f));
 ////        System_flush();
 //        sprintf(dbgStr, "%4d\t%4d\t%4d\t%4d\n",
 //                TskIr::IrInts.fl,
@@ -526,7 +610,7 @@ void Init()
     tskParams.priority = tskPrio;
     tskParams.stackSize = tskStkSize;
 
-    MbCmd = Mailbox_create(4, 4, NULL, NULL);
+    MbCmd = Mailbox_create(sizeof(TskAction::ActMsg::MsgType), 4, NULL, NULL);
     if(MbCmd == NULL)
         System_abort("create TskTop::MbCmd failed.\n");
 
