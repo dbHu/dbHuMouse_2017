@@ -77,10 +77,10 @@ PidParam pidparam;
 Matrix2x2  A(1.f, PP::Ts, 0.f, 1.f);
 Vector2    B(1/2.f * 1e-6f, 1e-3f);
 Matrix2x2  H(1.f, 0.f, 0.f, 1.f);
-Matrix2x2  Q(1e-12f * (1.25f * 1e-5f + 0.34f)/ 4.f, 
-             1e-9f * (1.25f * 1e-5f + 0.34f) / 2.f, 
-             1e-9f * (1.25f * 1e-5f + 0.34f) / 2.f, 
-             1e-6f * (1.25f * 1e-5f + 0.34f));
+Matrix2x2  Q(1e-12f * (1.25f * 1e-5f + 0.34f * 0.34f)/ 4.f * 3.f, 
+             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f, 
+             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f, 
+             1e-6f * (1.25f * 1e-5f + 0.34f * 0.34f) * 3.f);
 Matrix2x2  R(1e-6f * 0.16654957f, 0, 0, 0.16654957f);
 Vector2    x0;
 Matrix2x2  P0;
@@ -92,9 +92,9 @@ void task(void *pvParameters)
 //    INT32S cnt = 0;//, tick;
     BaseType_t rtn;
 
-//    ImuValues imuVals;
+    ImuValues imuVals;
     // vars for zero acq
-    int staticCnt = 0, staticCntCyced,i = 0, pwmCnt = 0;
+    int staticCnt = 0, staticCntCyced, pwmCnt = 0;
     float gyroZZeroAcc = 0;
     float acclXZeroAcc = 0;
 
@@ -112,33 +112,33 @@ void task(void *pvParameters)
     BaseTimeInit();
 
     WheelEncInit();
-    // // initial imu
-    // ImuInit();
-    // // imu start 1st read
-    // ImuStartRead();
+     // initial imu
+     ImuInit();
+     // imu start 1st read
+     ImuStartRead();
 
-    // Task_sleep(2);
+     vTaskDelay(2);
 
     while(1)
     {
-        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
-        rtn=xSemaphoreTake(SemMotTick, 2);
-        configASSERT(rtn==pdPASS);
-        GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
+        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
+        rtn = xSemaphorePend(SemMotTick, 2);
+        configASSERT(rtn == pdPASS);
+        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
 
         //TODO
         // read encder
         EncVel = WheelEncGetVel(EncRVel, EncLVel);
 
-        // // read gyro, accm
-        // if(!ImuGetValues(imuVals))
-        //     System_abort("ImuGetValues failed!\n");
+        // read gyro, accm
+        rtn = ImuGetValues(imuVals);
+        configASSERT(rtn);
 
-        // // start next read
-        // ImuStartRead();
+        // start next read
+        ImuStartRead();
 
-//        AcclX = imuVals.acclX - AcclXZero;
-//        GyroZ = imuVals.angvZ - GyroZZero;
+        AcclX = imuVals.acclX - AcclXZero;
+        GyroZ = imuVals.angvZ - GyroZZero;
 
 
         if(pwmCnt > 200)
@@ -147,7 +147,7 @@ void task(void *pvParameters)
 //            lvPid.Reset();
             avPid.Reset();
             MotorEnabled = false;
-            GPIO_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
+            LED_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
             //DbgUartPutLine("error\r\n");
             vTaskDelay(5000);
         }
@@ -248,8 +248,8 @@ void task(void *pvParameters)
             }
             else if(staticCntCyced >= 128 && staticCntCyced < 640)
             {
-//                gyroZZeroAcc += imuVals.angvZ;
-//                acclXZeroAcc += imuVals.acclX;
+                gyroZZeroAcc += imuVals.angvZ;
+                acclXZeroAcc += imuVals.acclX;
             }
             else if(staticCntCyced == 640)   // adj zero finish
             {
@@ -258,14 +258,14 @@ void task(void *pvParameters)
                 lvEstKal.Reset();
                 avPid.Reset();
                 sprintf(dbgStr, "gzero:%7.3f, azero:%7.3f\n",TskMotor::GyroZZero, TskMotor::AcclXZero);
-                rtn=xQueueSend(TskPrint::MbCmd,dbgStr, (TickType_t)0);
-                configASSERT(rtn==pdPASS);
+                rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
             }
         }
         else
             staticCnt = 0;
 
-        if(xQueueReceive(MbCmd, &msg, (TickType_t)0))
+        if(xQueuePend(MbCmd, &msg, (TickType_t)0))
         {
             switch(msg & 0xFFFF0000)
             {
@@ -280,6 +280,10 @@ void task(void *pvParameters)
                 MotorEnabled = true;
                 break;
             case MotorMsg::DisableMotors:
+                DistanceAcc = 0.f;
+                DesireDistance = 0.f;
+                AngleAcc = 0.f;
+                DistanceAcc_en = 0.f;
                 MotorPwmCoast();
                 lvEstKal.Reset();
                 avPid.Reset();
@@ -323,9 +327,9 @@ void Init()
     QMotor = new Queue<VelOmega, true>(650);
     hpsize = xPortGetFreeHeapSize();
     // Create tasks
-    rtn=xTaskCreate(task, (const portCHAR *)"TopMotor",
+    rtn = xTaskCreate(task, (const portCHAR *)"TopMotor",
                 tskStkSize, NULL, tskPrio, NULL);
-    configASSERT(rtn==pdPASS);
+    configASSERT(rtn == pdPASS);
 
 }
 

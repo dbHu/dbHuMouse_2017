@@ -43,11 +43,11 @@ void BaseTimerISR(void)
     BaseType_t rtn, Wake;
 
     HWREG(TIMER3_BASE | TIMER_O_ICR) |= 0x00000001;      // clear TimerA timeout int
-    rtn = xSemaphoreGiveFromISR(SemMotTick, &Wake);
+    rtn = xSemaphorePost(SemMotTick, &Wake);
     configASSERT(rtn == pdPASS || rtn == errQUEUE_FULL);
-    rtn = xSemaphoreGiveFromISR(SemIrTick, &Wake);
+    rtn = xSemaphorePost(SemIrTick, &Wake);
     configASSERT(rtn == pdPASS || rtn == errQUEUE_FULL);
-    rtn = xSemaphoreGiveFromISR(SemActTick, &Wake);
+    rtn = xSemaphorePost(SemActTick, &Wake);
     configASSERT(rtn == pdPASS || rtn == errQUEUE_FULL);
     lp = rotateL;
     rp = rotateR;
@@ -65,6 +65,7 @@ void BaseTimeInit()
     configASSERT(SemActTick != NULL);
 
     HWREG(SYSCTL_RCGCTIMER) |= 0x000000008;          // enable Timer3
+    asm("NOP");
     HWREG(TIMER3_BASE | TIMER_O_CTL) &= ~0x00000001; // GPTM Timer A clear
     HWREG(TIMER3_BASE | TIMER_O_CFG) = 0x00000000;   // 32-bit timer configuration
     HWREG(TIMER3_BASE | TIMER_O_TAMR) = 0x00000002;  // Timer A Periodic mode.

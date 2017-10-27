@@ -10,7 +10,9 @@
 
 #include "FreeRTOS.h"
 #include "queue.h"
-// #include "action/action.h"
+
+ #include "action/action.h"
+
 namespace TskTop
 {
 
@@ -42,7 +44,7 @@ extern volatile MouseMode::ModeType Mode;
 extern char dbgStr[128];
 void Init();
 void SetLeds(unsigned char val);
-// void actPrint(TskAction::Act::ActType act);
+void actPrint(TskAction::Act::ActType act);
 
 }
 

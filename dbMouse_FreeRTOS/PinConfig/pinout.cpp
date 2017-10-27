@@ -38,7 +38,6 @@
 #include "pinout.h"
 
 #define GPIOFUNC    1
-#define I2CFUNC     1
 
 //*****************************************************************************
 //
@@ -67,6 +66,13 @@ void Board_General_Init(void)
     // Enable all the GPIO peripherals.
     //
     HWREG(SYSCTL_RCGCGPIO) = 0x00007FFF;
+
+    // reset gpiod
+    HWREG(SYSCTL_SRGPIO) |= 0x00007FFF;
+    HWREG(SYSCTL_SRGPIO) &= ~0x00007FFF;
+    while((HWREG(SYSCTL_PRGPIO) & 0x00007FFF) != 0x00007FFF)
+    {
+    }
 
     //UNLOCK PF0 PD7
 
@@ -141,7 +147,7 @@ void Board_General_Init(void)
 //! \return None.
 //
 //*****************************************************************************
-void GPIO_write(unsigned int index, unsigned int value)
+void LED_write(unsigned int index, unsigned int value)
 {
     //
     // Check the mask and set or clear the LED as directed.
@@ -183,6 +189,62 @@ void GPIO_write(unsigned int index, unsigned int value)
     }
 }
 
+void IR_write(unsigned int index, unsigned int value)
+{
+    //
+    // PE1 IR_FL
+    // PD5 IR_FR
+    // PE3 IR_SL
+    // PD7 IR_SR
+    //
+    if(index == DBMOUSE_IR_FL)        //DBMOUSE_IR_FL
+    {
+        if (value)
+        {
+            HWREG(GPIO_PORTE_AHB_BASE | GPIO_O_DATA)|= 0x00000002;     //OUTPUT 1
+        }
+        else
+        {
+            HWREG(GPIO_PORTE_AHB_BASE | GPIO_O_DATA)&= ~0x00000002;     //OUTPUT 0
+        }
+    }
+
+    if (index == DBMOUSE_IR_FR)       //DBMOUSE_IR_FR
+    {
+        if (value)
+        {
+            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)|= 0x00000020;     //OUTPUT 1
+        }
+        else
+        {
+            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)&= ~0x00000020;     //OUTPUT 0
+        }
+    }
+
+    if (index == DBMOUSE_IR_SL)        //DBMOUSE_IR_SL
+    {
+        if (value)
+        {
+            HWREG(GPIO_PORTE_BASE | GPIO_O_DATA)|= 0x00000008;     //OUTPUT 1
+        }
+        else
+        {
+            HWREG(GPIO_PORTE_BASE | GPIO_O_DATA)&= ~0x00000008;     //OUTPUT 0
+        }
+    }
+
+    if (index == DBMOUSE_IR_SR)       //DBMOUSE_IR_SR
+    {
+        if (value)
+        {
+            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)|= 0x00000080;     //OUTPUT 1
+        }
+        else
+        {
+            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)&= ~0x00000080;     //OUTPUT 0
+        }
+    }
+}
 //*****************************************************************************
 //
 // Close the Doxygen group.

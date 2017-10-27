@@ -119,6 +119,11 @@ Kalman \
 Pid \
 PinConfig \
 Queue \
+TskIr \
 TskMotor \
 TskTop \
+action \
+mmaze \
+mouse \
+solve \
 

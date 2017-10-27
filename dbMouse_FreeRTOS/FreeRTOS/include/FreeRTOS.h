@@ -1061,6 +1061,12 @@ typedef struct xSTATIC_TIMER
 
 } StaticTimer_t;
 
+#define xQueuePost(a, b, c) xQueueSend((a), (b), (c))
+#define xQueuePend(a, b, c) xQueueReceive((a), (b), (c))
+
+#define xSemaphorePend(a, b) xSemaphoreTake((a), (b))
+#define xSemaphorePost(a, b) xSemaphoreGiveFromISR((a), (b))
+
 #ifdef __cplusplus
 }
 #endif

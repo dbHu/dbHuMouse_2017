@@ -8,6 +8,8 @@
 #ifndef PHYSPARAMS_H_
 #define PHYSPARAMS_H_
 
+#define VERSION  "V_1"
+
 #define ENABLE_CORRECTION	1
 
 #define RAD2DEG(x) 	((x) * (180.0f / 3.1415926f))

@@ -62,7 +62,8 @@ extern "C"
 //
 //*****************************************************************************
 extern void Board_General_Init(void);
-extern void GPIO_write(unsigned int index, unsigned int value);
+extern void LED_write(unsigned int index, unsigned int value);
+extern void IR_write(unsigned int index, unsigned int value);
 
 //*****************************************************************************
 //

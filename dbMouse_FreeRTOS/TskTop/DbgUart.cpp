@@ -20,7 +20,7 @@
 #define UART_RX_BUFF 128
 namespace TskPrint{
 	const int tskPrio = 2;
-	const int tskStkSize = 1024;
+	const int tskStkSize = 512;
 
 	QueueHandle_t MbCmd;
 	char msg[128];
@@ -56,7 +56,7 @@ namespace TskPrint{
 	     */
 	    HWREG(UART2_BASE | UART_O_IBRD) = 65;               // IBRD 65
 	    HWREG(UART2_BASE | UART_O_FBRD) = 7;                // IBRD 7
-	    // LCRH 0x60:8bits,one stop bit,no parity,fifos disabled,no interrupts
+	    // LCRH 0x60:8bits,one stop bit,no parity,fifos disable
 	    HWREG(UART2_BASE | UART_O_LCRH) = 0x00000060;
 	    HWREG(UART2_BASE | UART_O_CC) = 0x00000000;         //System clock
         //
@@ -82,15 +82,21 @@ namespace TskPrint{
 	    while(1)
 	    {
 	        do{
-	            IntDisable(INT_UART2_TM4C129);
+	            //
+	            //Disable RX receive interrupt mask
+	            //
+//	            HWREG(UART2_BASE | UART_O_IM) &= ~0x00000010;
 	            b = QUartRx.De(c);
-	            IntEnable(INT_UART2_TM4C129);
+	            //
+	            // Enable RX receive interrupt mask
+	            //
+//	            HWREG(UART2_BASE | UART_O_IM) |= 0x00000010;
 	        }while(!b);
 
 	        if((*line++ = c) == '\r')
 	            break;
 	    }
-	    *line = '\0';
+	    *(line-1) = '\0';
 	    return;
 	}
 
@@ -115,7 +121,7 @@ namespace TskPrint{
 	    BaseType_t rtn;
 
 	    while(true){
-	        rtn=xQueueReceive(MbCmd, msg, portMAX_DELAY);
+	        rtn=xQueuePend(MbCmd, msg, portMAX_DELAY);
     		configASSERT(rtn==pdPASS);
 	        UartWrite(msg);
 	    }

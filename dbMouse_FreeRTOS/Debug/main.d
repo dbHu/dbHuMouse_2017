@@ -14,6 +14,8 @@ main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/inclu
 main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/portable/CCS/ARM_CM4F/portmacro.h
 main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/mpu_wrappers.h
 main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h
+main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h
+main.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/../physparams.h
 main.obj: ../PinConfig/pinout.h
 main.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h
 main.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/rom.h
@@ -37,6 +39,8 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/depreca
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/portable/CCS/ARM_CM4F/portmacro.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/mpu_wrappers.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/../physparams.h: 
 ../PinConfig/pinout.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/rom.h: 

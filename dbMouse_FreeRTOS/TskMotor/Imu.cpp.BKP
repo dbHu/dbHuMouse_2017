@@ -1,0 +1,228 @@
+#include <stdint.h>
+#include <stdio.h>
+
+#include "inc/hw_udma.h"
+#include "inc/hw_i2c.h"
+#include "inc/hw_memmap.h"
+#include <inc/hw_ints.h>
+#include <inc/hw_gpio.h>
+#include "inc/hw_types.h"
+#include "inc/hw_sysctl.h"
+
+#include "driverlib/pin_map.h"
+#include "driverlib/i2c.h"
+#include "driverlib/interrupt.h"
+
+#include "Imu.h"
+#include "TskTop/DbgUart.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
+const unsigned char Imu20608Addr = 0x69;
+
+#pragma DATA_ALIGN(1024)
+uint8_t pui8ControlTable[1024];
+
+#pragma pack(push)
+#pragma pack(1)
+union _imuData
+{
+    unsigned char buf[16];
+    //char buf[14];
+    struct
+    {
+        unsigned char axh, axl, ayh, ayl, azh, azl;
+        unsigned char th, tl;
+        unsigned char gxh, gxl, gyh, gyl, gzh, gzl;
+        unsigned char fill1, fill2;
+    };
+} imuData;
+#pragma pack(pop)
+
+unsigned char imuInitSeq0[] = {
+        0x19,
+        0x00, // 0x19: sr = gyro rate / 1
+        0x01, // 0x1A: ext sync disable, dlpf = 1(accl 1k, gyro 1k)
+        0x18, // 0x1B: gyro fs = 2k deg/sec (34.6/s)
+        0x00  // 0x1C: accl fs = 2g (19.6m/sq.s)
+};
+unsigned char imuInitSeq1[] = {
+        0x6B,
+        0x00    // 0x6B: no sleep
+};
+unsigned char imuReadSeq[] = {
+        0x3B  // 0x3B: start of data
+};
+
+void UdmaInit();
+void i2cRxISR(void)
+{
+    HWREG(I2C7_BASE | I2C_O_MICR) = 0x00000111;
+    HWREG(I2C7_BASE | I2C_O_MIMR) &= ~0x1;
+
+    //I2C_O_FIFOCTL use reset value
+    HWREG(I2C7_BASE | I2C_O_FIFOCTL) |= 0x10001000;
+
+    HWREG(I2C7_BASE | I2C_O_MBLEN) = 16;
+    //set slave address & receive
+    HWREG(I2C7_BASE | I2C_O_MSA) = Imu20608Addr << 1 | 0x01;
+
+    UdmaInit();
+
+    /*
+     * START condition followed by N FIFO-serviced
+     * TRANSMITs (master goes to the Master
+     * Transmit state).
+     */
+    HWREG(I2C7_BASE | I2C_O_MCS) = I2C_MASTER_CMD_FIFO_SINGLE_RECEIVE;
+}
+
+void ImuStartRead(void)
+{
+    //set slave address & transmit
+    HWREG(I2C7_BASE | I2C_O_MSA) = Imu20608Addr << 1 | 0x00;
+    //write reg
+    HWREG(I2C7_BASE | I2C_O_FIFODATA) = imuReadSeq[0];
+    /*
+     * START condition followed by N FIFO-serviced
+     * TRANSMITs
+     */
+
+    HWREG(I2C7_BASE | I2C_O_MBLEN) = 1;
+    HWREG(I2C7_BASE | I2C_O_MCS) = I2C_MASTER_CMD_FIFO_BURST_SEND_START;
+
+    HWREG(I2C7_BASE | I2C_O_MIMR) = 0x00000001;
+}
+
+int8_t i2cInitConfig(unsigned char *seq, int8_t len)
+{
+    int8_t cnt;
+    if(len > 8) return -1;
+
+    //set slave address & transmit
+    HWREG(I2C7_BASE | I2C_O_MSA) = Imu20608Addr << 1 | 0x00;
+
+    /*
+     * START condition followed by N FIFO-serviced
+     * TRANSMITs and STOP condition (master
+     * remains in Idle state).
+     */
+    HWREG(I2C7_BASE | I2C_O_MBLEN) = len;
+    HWREG(I2C7_BASE | I2C_O_MCS) = I2C_MASTER_CMD_FIFO_SINGLE_SEND;
+
+    //write reg & data seq
+    for(cnt = 0; cnt < len; cnt++){
+        HWREG(I2C7_BASE | I2C_O_FIFODATA) = seq[cnt];
+    }
+    vTaskDelay(2);
+    //data transmit over
+    while(HWREG(I2C7_BASE | I2C_O_MCS) & I2C_MCS_BUSY){
+
+    }
+    return len;
+}
+
+void UdmaInit(void)
+{
+    //Enable DMA
+    HWREG(SYSCTL_RCGCDMA) = 0x000000001;
+    //Enable DMA controller
+    HWREG(UDMA_CFG) = 0x000000001;
+    //Program the location of the channel control table
+    HWREG(UDMA_CTLBASE) = (uint32_t)pui8ControlTable;
+
+    /*
+     *Configuring a Peripheral for simple transmit
+     *use uDMA channel 28	I2C7 RX
+     */
+
+    //configures the uDMA channel assignment as I2C7 Rx
+    HWREG(UDMA_CHMAP3) = 0x00080000;
+    /*
+     *configure the channel attributes
+     */
+    //configure bit28 to set the channel[28] to High priority or Default priority
+    HWREG(UDMA_PRIOSET) = 0x1 << 28;
+    //set bit28 to select the primary channel control structure for this transfer.
+    HWREG(UDMA_ALTCLR) = 0x1 << 28;
+    //set bit28 to allow the uDMA controller to respond to single and burst requests
+    HWREG(UDMA_USEBURSTCLR) = 0x1 << 28;    
+    //set bit28 to allow the uDMA controller to controller to recognize requests for this channel
+    HWREG(UDMA_REQMASKCLR) = 0x1 << 28;
+
+    /*
+     *configure the Channel Control Structure channel 28 is at offset 0x1C0
+     *of the channel control table
+     *Source End Pointer Control: Table Base + 0x1C0
+     *Destination End Pointer	: Table Base + 0x1C4
+     *Control Word				: Table Base + 0x1C8
+     */
+    *(uint32_t *)&(pui8ControlTable[0x1c0]) = (I2C7_BASE | I2C_O_FIFODATA);
+	*(uint32_t *)&(pui8ControlTable[0x1c4]) = (uint32_t )&imuData + sizeof(imuData) - 1;
+	/*
+     *peripheral has a FIFO that triggers at a level of 4
+     *    If the peripheral does make a burst request, then 4 bytes are transferred
+     */								 
+	*(uint32_t *)&(pui8ControlTable[0x1c8]) = 1 | (0<<3) | (15<<4) | (4<<14) | (0<<18) | (0<<24) | (3<<26) | (0<<28) | (0<<30);
+
+    //
+    // Set the bit for this channel in the enable set register.
+    //
+    HWREG(UDMA_ENASET) = 1 << 28;
+}
+
+void ImuInit(void)
+{
+    //
+    // PD0-1 are used for I2C7.
+    //
+    HWREG(SYSCTL_RCGCI2C) |= 0x000000080;
+    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_AFSEL) |= 0x00000003;    // port D[1..0] as alternate func
+    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DEN)   |= 0x00000003;    // port D[1..0] digital enable
+    // port D[1..0] as AF2(i2c)
+    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_PCTL) = HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_PCTL) & 0xFFFFFF00 | 0x00000022;
+
+    HWREG(I2C7_BASE | I2C_O_MCR) = 0x00000010;              // initialize I2C master
+    /*
+     * SCL clock speed of 400 Kbps 
+     * TPR = (System clock / 2 * (SCL_LP + SCL_HP) * SCL_CLK)) - 1
+     * TPR = (120M / 2 * (6 + 4) * 400000) - 1 = 14
+     */
+    HWREG(I2C7_BASE | I2C_O_MTPR) = 0x0000000E;
+
+    //I2C_O_FIFOCTL use reset value
+    HWREG(I2C7_BASE | I2C_O_FIFOCTL) = 0x30041004;
+
+    //clear master interrupt
+    HWREG(I2C7_BASE | I2C_O_MICR) = 0x00000111;
+    HWREG(I2C7_BASE | I2C_O_MIMR) = 0x00000000;
+    HWREG(I2C7_BASE | I2C_O_MBLEN) = 0;
+
+    i2cInitConfig(imuInitSeq1, 2);
+    i2cInitConfig(imuInitSeq0, 5);
+
+    //I2C_O_FIFOCTL use reset value
+    HWREG(I2C7_BASE | I2C_O_FIFOCTL) |= 0x10001000;
+    UdmaInit();
+    //Enable interrupt
+    IntRegister(INT_I2C7_TM4C129, i2cRxISR);
+    IntEnable(INT_I2C7_TM4C129);
+}
+
+bool ImuGetValues(ImuValues &imuVal)
+{
+    imuVal.acclX = -AcclUnit * (float)(short)((imuData.axh << 8) | imuData.axl);
+    imuVal.acclY = AcclUnit * (float)(short)((imuData.ayh << 8) | imuData.ayl);
+    imuVal.acclZ = AcclUnit * (float)(short)((imuData.azh << 8) | imuData.azl);
+
+    imuVal.angvX = GyroUnit * (float)(short)((imuData.gxh << 8) | imuData.gxl);
+    imuVal.angvY = GyroUnit * (float)(short)((imuData.gyh << 8) | imuData.gyl);
+    // TODO : solve this
+    imuVal.angvZ = -GyroUnit * (float)(short)((imuData.gzh << 8) | imuData.gzl);
+
+    imuVal.temp = (float)(short)((imuData.th << 8) | imuData.tl) * 2.941176471e-3f + 36.53f;
+
+    return true;
+}
