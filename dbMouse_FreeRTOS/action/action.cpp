@@ -41,7 +41,7 @@ const int tskStkSize = 2048;
 
 ActMsg::MsgType end_msg;
 
-volatile float Info[512],Desire[512];
+volatile float Info[640],Desire[640];
 float IRint,IMin;
 QueueHandle_t MbCmd;
 
@@ -76,7 +76,8 @@ int i = 0;
 void WaitQEnd(void)
 {
     bool rtn;
-    while(TskMotor::QMotor->Len() > 0)
+
+    while(TskMotor::QMotor->Len() > 1)
     {
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
@@ -1092,23 +1093,11 @@ unsigned int  actCorrStop()
         }
         TskMotor::QMotor->Clear();
 #endif
-    	TskTop::SetLeds(0x0f);
+    	TskTop::SetLeds(0x07);
         len = MotionCalcFwd(PP::SearchSpeed, 0.0f, PP::StopAccDist, v_s);
         for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
         WaitQEnd();
-
-        while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > PP::PI / 180.f
-        		|| fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.0025f)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-            TskMotor::OmgAdj = actHeadingDirCorrByFwdIr(&cur_wall);
-			TskMotor::LvAdj = actFwdDisCorrByFwdIr(&cur_wall);
-        }
-        TskMotor::OmgAdj = 0.0f;
-        TskMotor::LvAdj = 0.0f;
-        actHDirPid->Reset();
     }
     else
     {
@@ -1357,6 +1346,7 @@ void actCorrLR90(Act::ActType act)
 
     if(cur_wall.fwd)
     {
+        TskTop::SetLeds(0x01);
     	// TODO:...
         while((act == Act::L90 ?TskIr::IrDists.FLns : TskIr::IrDists.FRns) >
         		requ + PP::CenterToWall - (act == Act::L90 ? CP.TURNLWAIT_DIST_ADJ : CP.TURNRWAIT_DIST_ADJ))
@@ -1364,7 +1354,7 @@ void actCorrLR90(Act::ActType act)
             rtn = xSemaphorePend(SemActTick, 2);
             configASSERT(rtn == pdPASS);
 
-         	TskTop::SetLeds(0x0f);
+         	TskTop::SetLeds(0x02);
         }
 
         TskMotor::QMotor->Clear();
@@ -1385,6 +1375,7 @@ void actCorrLR90(Act::ActType act)
     configASSERT(rtn == pdPASS);
 
     WaitQEnd();
+    TskTop::SetLeds(0x00);
 }
 
 

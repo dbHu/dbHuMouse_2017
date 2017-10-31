@@ -171,25 +171,26 @@ void irMonitor()
        configASSERT(rtn == pdPASS);
        vTaskDelay(50);
 
-       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
-               TskIr::IrDists.LS, TskIr::IrBins.LS,
-               TskIr::IrDists.RS, TskIr::IrBins.RS,
-               TskIr::IrYaw.byLS * 180.f / 3.1415927f,
-               TskIr::IrYaw.byRS * 180.f / 3.1415927f,
-               TskIr::IrYaw.byFLR * 180.f / 3.1415927f
-               // TskIr::IrInts.sl,
-               // TskIr::IrInts.sr
+//       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
+//               TskIr::IrDists.LS, TskIr::IrBins.LS,
+//               TskIr::IrDists.RS, TskIr::IrBins.RS,
+//               TskIr::IrYaw.byLS * 180.f / 3.1415927f,
+//               TskIr::IrYaw.byRS * 180.f / 3.1415927f,
+//               TskIr::IrYaw.byFLR * 180.f / 3.1415927f
+//               // TskIr::IrInts.sl,
+//               // TskIr::IrInts.sr
+//        );
+        sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
+             TskIr::IrInts.fl, TskIr::IrDists.FLns,
+             TskIr::IrInts.fr, TskIr::IrDists.FRns,
+             TskIr::IrInts.sl, TskIr::IrDists.LS,
+             TskIr::IrInts.sr, TskIr::IrDists.RS
         );
         rtn = xQueuePost(TskPrint::MbCmd, dbgStr, portMAX_DELAY);
         configASSERT(rtn == pdPASS);
-        // sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
-        //      TskIr::IrInts.fl, TskIr::IrDists.FLns,
-        //      TskIr::IrInts.fr, TskIr::IrDists.FRns,
-        //      TskIr::IrInts.sl, TskIr::IrDists.LS,
-        //      TskIr::IrInts.sr, TskIr::IrDists.RS
-        // );
+
         vTaskDelay(500);
-        if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
+        if(TskIr::TestIrTouch(TskIr::IrCh::SL | TskIr::IrCh::SR, 2200, 1900))
             break;
     }
 
@@ -219,24 +220,27 @@ void actionTest(void)
             configASSERT(rtn == pdPASS);
             xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);
             configASSERT(rtn == pdPASS);
-            actMsg = (TskAction::Act::ActType)(TskAction::Act::L90);
-            rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
-            configASSERT(rtn == pdPASS);
-            rtn = xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);
-            configASSERT(rtn == pdPASS);
+
             actMsg = (TskAction::Act::ActType)(TskAction::Act::Stop);
             rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
             configASSERT(rtn == pdPASS);
             rtn = xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);
             configASSERT(rtn == pdPASS);
-            TskAction::WaitQEnd();
+
             vTaskDelay(50);
             MotorStop();
         }
-        sprintf(dbgStr, "%6.3f,%6.3f,%6.3f\r\n",
-            TskMotor::DistanceAcc,
-            TskMotor::DistanceAcc_en,
-            TskMotor::AngleAcc);
+//        for(int i = 0; i < 240; i++){
+//            sprintf(dbgStr, "%7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+//                    TskAction::Info[i],
+//                    TskAction::Desire[i],
+//                    TskMotor::dist_en[i],
+//                    TskMotor::vel_de[i],
+//                    TskMotor::lv[i]);
+//            rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
+//            configASSERT(rtn == pdPASS);
+//            vTaskDelay(50);
+//        }
         break;
     }
 }
@@ -287,10 +291,6 @@ void solveTest()
     configASSERT(rtn == pdPASS);
 
     vTaskDelay(100);// wait for all HW Enable
-
-    TskMotor::DistanceAcc = 0.f;
-    TskMotor::AngleAcc = 0.f;
-    TskMotor::DistanceAcc_en = 0.f;
 
     SetLeds(0x00);
 
@@ -352,10 +352,6 @@ void RushTest()
     configASSERT(rtn == pdPASS);
 
     vTaskDelay(100);// wait for all HW Enable
-
-    TskMotor::DistanceAcc = 0.f;
-    TskMotor::AngleAcc = 0.f;
-    TskMotor::DistanceAcc_en = 0.f;
 
     msg = solve::Solve::RUSHTEST;
     rtn = xQueuePost(solve::MbTop, &msg, portMAX_DELAY);
@@ -471,6 +467,12 @@ void task(void *pvParameters)
 
     TskIr::IrMsg::MsgType irMsg;
     irMsg = TskIr::IrMsg::EnableEmitt;
+
+//    sprintf(dbgStr, "%d\n", irMsg);
+//    rtn = xQueuePost(TskPrint::MbCmd, dbgStr, portMAX_DELAY);
+//    configASSERT(rtn == pdPASS);
+//    vTaskDelay(50);
+
     rtn = xQueuePost(TskIr::MbCmd, &irMsg, portMAX_DELAY);
     configASSERT(rtn == pdPASS);
 
@@ -493,6 +495,7 @@ void task(void *pvParameters)
         lastMode = Mode;
         if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
         {
+            SetLeds(0x00);
             switch(Mode)
             {
             case MouseMode::EncImuMonitor:
@@ -523,6 +526,7 @@ void task(void *pvParameters)
                 Mode = MouseMode::Idle;
                 break;
              }
+
         }
         vTaskDelay(50);
     }

@@ -19,6 +19,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/gpio.h"
 
+#include "action/action.h"
 
 #define ENCRA  HWREG(GPIO_PORTE_AHB_BASE + GPIO_O_DATA) & 0x10
 #define ENCRB  HWREG(GPIO_PORTB_AHB_BASE + GPIO_O_DATA) & 0x20
@@ -31,8 +32,6 @@ int rp,lp;
 SemaphoreHandle_t SemMotTick;
 SemaphoreHandle_t SemIrTick;
 SemaphoreHandle_t SemActTick;
-
-int val = 0;
 
 void portEISR(void);
 void portBISR(void);
@@ -57,6 +56,8 @@ void BaseTimerISR(void)
 
 void BaseTimeInit()
 {
+    HWREG(SYSCTL_RCGCTIMER) |= 0x000000008;          // enable Timer3
+
     SemMotTick = xSemaphoreCreateBinary();
     configASSERT(SemMotTick != NULL);
     SemIrTick = xSemaphoreCreateBinary();
@@ -64,8 +65,6 @@ void BaseTimeInit()
     SemActTick = xSemaphoreCreateBinary();
     configASSERT(SemActTick != NULL);
 
-    HWREG(SYSCTL_RCGCTIMER) |= 0x000000008;          // enable Timer3
-    asm("NOP");
     HWREG(TIMER3_BASE | TIMER_O_CTL) &= ~0x00000001; // GPTM Timer A clear
     HWREG(TIMER3_BASE | TIMER_O_CFG) = 0x00000000;   // 32-bit timer configuration
     HWREG(TIMER3_BASE | TIMER_O_TAMR) = 0x00000002;  // Timer A Periodic mode.
@@ -225,8 +224,8 @@ void WheelEncInit()
 float WheelEncGetVel(volatile float &r, volatile float &l)
 {
 
-    r = (float)rp * EncUnit * PP::EncoderUnitCompensation;
-    l = (float)lp * EncUnit * PP::EncoderUnitCompensation;
+    r = (float)rp * EncUnit * CP.EncoderUnitCompensation;
+    l = (float)lp * EncUnit * CP.EncoderUnitCompensation;
     return 0.5f * (r + l);
 }
 //---------------------------------------------------

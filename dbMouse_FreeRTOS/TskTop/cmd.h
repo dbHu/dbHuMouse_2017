@@ -2,9 +2,9 @@
 #define TSKTOP_CMD_H_
 
 void RandomMode(void);
-void ActionIr(void);
-void ActionTestLR(void);
+void Action(void);
 void pidTest(void);
+void paramsCorr(void);
 extern void cmd_shell(void);
 extern void MotorStart(void);
 extern void MotorStop(void);

@@ -101,7 +101,7 @@ public: enum ActType
 extern QueueHandle_t MbCmd;
 
 extern float v_s[512],o_s[512];
-extern volatile float Info[512],Desire[512];
+extern volatile float Info[640],Desire[640];
 
 int MotionCalcFwd(float v0, float v1, float s, float *vs);
 int MotionCalcTurn(float v, float ang, float mu, float *omgs, float *requ);

@@ -96,10 +96,8 @@ const int SeqArrayLen    = 512;
 const float SearchSpeed    = 0.3f;	//0.36f comment @20150916 17:18
 //================
 
-//================ basic correction coefficients
- const float EncoderUnitCompensation = 1.010f;  // reduce to run farther
- const float GyroUnitCompensation    = 0.996f;  // reduce to turn/rotate more
- const float AcclUnitCompensation    = 1.015f;
+const float GyroUnitCompensation    = 0.996f;  // reduce to turn/rotate more
+const float AcclUnitCompensation    = 1.015f;
 };
 
 
@@ -139,8 +137,8 @@ struct PidParam
          avPidD = 0.f;
          avPidN = 0.f;
 
-         posCoff = 170.f;
-         velCoff = 3.7f;
+         posCoff = 120.f;
+         velCoff = 6.0f;
      };
 };
 
@@ -388,6 +386,9 @@ struct RushParam
 
 struct SeachParam
 {
+    //================ basic correction coefficients
+     float EncoderUnitCompensation;  // reduce to run farther 1.01 -> 1.15
+
     // static omega
     float StaticOmegaCoef ;
 
@@ -431,6 +432,8 @@ struct SeachParam
 
     SeachParam()
     {
+        EncoderUnitCompensation = 1.016f;  // reduce to run farther 1.01 -> 1.15
+
         // static omega
          StaticOmegaCoef  = 0.0f;
 
@@ -447,23 +450,23 @@ struct SeachParam
          HEADING_BY_SIRFWD_BEGIN_POS   = 0.120f;
          HEADING_BY_SIRFWD_END_POS= (PP::GridSize * 0.667 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
         // params defines distances added at fwd end corr occur
-         LFWDEND_DIST_W2NW= 0.06f;
-         RFWDEND_DIST_W2NW= 0.039f;
+         LFWDEND_DIST_W2NW= 0.01f;
+         RFWDEND_DIST_W2NW= 0.01f;
 
         // left & right turn straight segment when no fwd wall for turnwait
         // abs of these must be less than GeoFwd
-         TURNL90_PRE_ADJ  = -0.005f;
-         TURNR90_PRE_ADJ  = -0.009f;
-         TURNL90_POST_ADJ = -0.006f;
-         TURNR90_POST_ADJ = -0.010f;
+         TURNL90_PRE_ADJ  = -0.001f;
+         TURNR90_PRE_ADJ  = 0.001f;
+         TURNL90_POST_ADJ = -0.001f;
+         TURNR90_POST_ADJ = -0.003f;
 
         // turn wait dist adjustment
-         TURNLWAIT_DIST_ADJ    = -0.012f;    // more positive to turn later
-         TURNRWAIT_DIST_ADJ    = -0.014f;    // more positive to turn later
+         TURNLWAIT_DIST_ADJ    = -0.002f;    // more positive to turn later
+         TURNRWAIT_DIST_ADJ    = 0.001f;    // more positive to turn later
 
          RESTART_DIST_ADJ = 0.013f;
 
-         STOPEND_DIST_ADJ = -0.005f;
+         STOPEND_DIST_ADJ = -0.001f;
 
          FWDDISADJ = -0.002f;
          LRBACKANGLE_ADJ  = -2.f * PP::PI / 180.f; //

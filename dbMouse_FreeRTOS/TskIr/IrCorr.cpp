@@ -248,8 +248,6 @@ void doIrCorrection()
 
     TskIr::IrMsg::MsgType irMsg;
     int aim;
-
-    LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
     
     sprintf(dbgStr, "input fwd choose FWD Corr\n");
     rtn = xQueuePost(TskPrint::MbCmd, dbgStr, portMAX_DELAY);
@@ -323,8 +321,9 @@ void doIrCorrection()
                 WaitIrTouch(IrCh::SL | IrCh::SR, 2200, 1900);
 
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
-                vTaskDelay(2000);
+                vTaskDelay(1000);
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                vTaskDelay(1000);
         //        if(TskMotor::DistanceAcc - distZero < 0.061f)   // 3 times
 
                 frnsDist[frnsIdx] = flnsDist[flnsIdx] = (2.0f * PP::GridSize - PP::WallThick - PP::TailBack - PP::IrFFwd) - (float)aim * 4.f * PP::WallThick;
@@ -344,7 +343,6 @@ void doIrCorrection()
             
                 flnsIdx++;frnsIdx++;
             }
-            LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
 
             irApprox2nd(flnsInts, flnsDist, flnsIdx, IrACs.k[0]);
             irApprox2nd(frnsInts, frnsDist, frnsIdx, IrACs.k[1]);
@@ -394,9 +392,10 @@ void doIrCorrection()
             
             WaitIrTouch(IrCh::FR, 1500, 1000);
             {
-                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-                vTaskDelay(750);
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                vTaskDelay(500);
+                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                vTaskDelay(250);
                 //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
                 lsDist[lsIdx] = rsDist[rsIdx] = PP::GridSize - PP::WallThick / 2.0f - PP::IrSSide;
                 lsInts[lsIdx] = IrInts.sl;
@@ -474,9 +473,10 @@ void doIrCorrection()
 
             WaitIrTouch(IrCh::FR, 1500, 1000);
             {
-                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-                vTaskDelay(750);
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                vTaskDelay(500);
+                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                vTaskDelay(250);
                 //lsDist[lsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
                 rsDist[rsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
                 //lsInts[lsIdx] = IrInts.sl;
@@ -547,9 +547,10 @@ void doIrCorrection()
             
             WaitIrTouch(IrCh::FL, 1500, 1000);
             {
-                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-                vTaskDelay(750);
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                vTaskDelay(500);
+                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                vTaskDelay(250);
                 lsDist[lsIdx] = PP::GridSize - PP::WallThick - PP::BodyWidth * .5f - PP::IrSSide;
                 //rsDist[rsIdx] = PP::BodyWidth * .5f - PP::IrSSide;
                 lsInts[lsIdx] = IrInts.sl;
@@ -623,9 +624,10 @@ void doIrCorrection()
            
             WaitIrTouch(IrCh::FL | IrCh::FR, 1500, 1000);
             {
-                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-                vTaskDelay(750);
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
+                vTaskDelay(500);
+                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+                vTaskDelay(250);
                 rsDist[rsIdx] = lsDist[lsIdx] = PP::CenterToWall - PP::IrSSide;
                 lsInts[lsIdx] = IrInts.sl;
                 rsInts[rsIdx] = IrInts.sr;

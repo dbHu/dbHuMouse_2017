@@ -35,6 +35,7 @@ const float dLvDefault = 0.0f;
 const float dAvDefault = 0.0f;
 
 char dbgStr[128];
+float dist_en[240], vel_de[240], lv[240];
 //
 //const float gyro_gain = (70e-3f * 3.1415927f / 180.0f / GYRO_UNIT_COMPENSATION);
 //const float accl_gain = (598.55e-6f / ACCL_UNIT_COMPENSATION);
@@ -72,7 +73,7 @@ inline float saturate(float v, float max, float min)
 
 VelOmega desire(dLvDefault, dAvDefault);    // desired lv & av from queue
 
-PidParam pidparam;
+volatile PidParam pidparam;
 
 Matrix2x2  A(1.f, PP::Ts, 0.f, 1.f);
 Vector2    B(1/2.f * 1e-6f, 1e-3f);
@@ -92,6 +93,7 @@ void task(void *pvParameters)
 //    INT32S cnt = 0;//, tick;
     BaseType_t rtn;
 
+    int i;
     ImuValues imuVals;
     // vars for zero acq
     int staticCnt = 0, staticCntCyced, pwmCnt = 0;
@@ -121,10 +123,10 @@ void task(void *pvParameters)
 
     while(1)
     {
-        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
+//        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
         rtn = xSemaphorePend(SemMotTick, 2);
         configASSERT(rtn == pdPASS);
-        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
+//        LED_write(DBMOUSE_LED_0, DBMOUSE_LED_ON);
 
         //TODO
         // read encder
@@ -151,17 +153,49 @@ void task(void *pvParameters)
             //DbgUartPutLine("error\r\n");
             vTaskDelay(5000);
         }
-//////////////////////////////////////////////////
-//        if(iii < 499)
-//            iii++;
-//        else
-//        {
-//            iii = 0;
-//            sprintf(sss, "%4f\t\t%4f\n", AcclY, GyroZ);
-//            System_printf(sss);
-//            System_flush();
-//        }
-//////////////////////////////////////////////////
+
+        // imu adj zeros, auto adj zeros if static 0.64s
+        if(AcqZerosEnabled && desire.Velocity + LvAdj == 0.0f && desire.Omega + OmgAdj == 0.0f)
+        {
+
+            staticCnt++;
+            staticCntCyced = (staticCnt & 0x1FFF);  // cyced per 8.192s(@Ts=1ms)
+
+            if(staticCntCyced == 127)               // desire static 127ms(@Ts=1ms), adj zero start
+            {
+                gyroZZeroAcc = 0;
+                acclXZeroAcc = 0;
+                //TskTop::SetLeds(0x5);
+            }
+            else if(staticCntCyced >= 128 && staticCntCyced < 640)
+            {
+                gyroZZeroAcc += imuVals.angvZ;
+                acclXZeroAcc += imuVals.acclX;
+            }
+            else if(staticCntCyced == 640)   // adj zero finish
+            {
+                GyroZZero = gyroZZeroAcc * (1.f / 512.f);
+                AcclXZero = acclXZeroAcc * (1.f / 512.f);
+                sprintf(dbgStr, "%6.3f,%6.3f,%6.3f\r\n",
+                    TskMotor::DistanceAcc,
+                    TskMotor::DistanceAcc_en,
+                    TskMotor::AngleAcc);
+                rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
+                i = 0;
+                DistanceAcc = 0.f;
+                DesireDistance = 0.f;
+                AngleAcc = 0.f;
+                DistanceAcc_en = 0.f;
+                lvEstKal.Reset();
+                avPid.Reset();
+//                sprintf(dbgStr, "gzero:%7.3f, azero:%7.3f\n",TskMotor::GyroZZero, TskMotor::AcclXZero);
+//                rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
+//                configASSERT(rtn == pdPASS);
+            }
+        }
+        else
+            staticCnt = 0;
 
         if(AcclEnabled)
         {
@@ -186,31 +220,43 @@ void task(void *pvParameters)
         DistanceAcc_en +=  EncVel * PP::Ts;
         AngleAcc += AV * PP::Ts;
 #if 0
-        MotorPwmSetDuty(40, 40);
+        MotorPwmSetDuty(80, 80);
 #endif
         if(MotorEnabled)
         {
             // read dlv&dav from fifo
             QMotor->De(desire); // dequeue, if empty desire will not change
 
-//            if(desire.Omega > 0.f)
-//			{
-//                if(i < 200)
-//                {
-//                    TskAction::Info[i] = AV;
-//                    TskAction::Desire[i] = desire.Omega;
-//                    i++;
-//                }
-//            }
-//            else if(desire.Velocity > 0.f)
-//            {
-//                if(i < 200)
-//                {
-//                    TskAction::Info[i] = kalOut.elem[0];
-//                    TskAction::Desire[i] = DesireDistance;
-//                    i++;
-//                }
-//            }
+            if(fabs(desire.Omega) > 0.f)
+			{
+                if(i < 200)
+                {
+                    TskAction::Info[i] = AV;
+                    TskAction::Desire[i] = desire.Omega;
+                    i++;
+                }
+            }
+            else if(fabs(desire.Velocity) > 0.f)
+            {
+                if(i < 200)
+                {
+                    TskAction::Info[i] = kalOut.elem[0];
+                    TskAction::Desire[i] = DesireDistance;
+                    dist_en[i] = DistanceAcc_en;
+                    vel_de[i] = desire.Velocity;
+                    lv[i] = kalOut.elem[1];
+                    i++;
+                }
+            }
+            if(i >= 200 && i < 240)
+            {
+                TskAction::Info[i] = kalOut.elem[0];
+                TskAction::Desire[i] = DesireDistance;
+                dist_en[i] = DistanceAcc_en;
+                vel_de[i] = desire.Velocity;
+                lv[i] = kalOut.elem[1];
+                i++;
+            }
 
             CurrentV = desire.Velocity + LvAdj;
             DesireDistance += CurrentV * PP::Ts;
@@ -234,37 +280,6 @@ void task(void *pvParameters)
             }
         }
 
-        // imu adj zeros, auto adj zeros if static 0.64s
-        if(AcqZerosEnabled && desire.Velocity + LvAdj == 0.0f && desire.Omega + OmgAdj == 0.0f)
-        {
-            staticCnt++;
-            staticCntCyced = (staticCnt & 0x1FFF);  // cyced per 8.192s(@Ts=1ms)
-
-            if(staticCntCyced == 127)               // desire static 127ms(@Ts=1ms), adj zero start
-            {
-                gyroZZeroAcc = 0;
-                acclXZeroAcc = 0;
-                //TskTop::SetLeds(0x5);
-            }
-            else if(staticCntCyced >= 128 && staticCntCyced < 640)
-            {
-                gyroZZeroAcc += imuVals.angvZ;
-                acclXZeroAcc += imuVals.acclX;
-            }
-            else if(staticCntCyced == 640)   // adj zero finish
-            {
-                GyroZZero = gyroZZeroAcc * (1.f / 512.f);
-                AcclXZero = acclXZeroAcc * (1.f / 512.f);
-                lvEstKal.Reset();
-                avPid.Reset();
-                sprintf(dbgStr, "gzero:%7.3f, azero:%7.3f\n",TskMotor::GyroZZero, TskMotor::AcclXZero);
-                rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
-                configASSERT(rtn == pdPASS);
-            }
-        }
-        else
-            staticCnt = 0;
-
         if(xQueuePend(MbCmd, &msg, (TickType_t)0))
         {
             switch(msg & 0xFFFF0000)
@@ -280,6 +295,13 @@ void task(void *pvParameters)
                 MotorEnabled = true;
                 break;
             case MotorMsg::DisableMotors:
+                sprintf(TskTop::dbgStr, "%7.4f,%8.3f,%8.3f\r\n",
+                        TskMotor::DistanceAcc,
+                        TskMotor::DistanceAcc_en,
+                        TskMotor::AngleAcc);
+                rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, portMAX_DELAY);
+                vTaskDelay(50);
+
                 DistanceAcc = 0.f;
                 DesireDistance = 0.f;
                 AngleAcc = 0.f;
@@ -319,13 +341,13 @@ void task(void *pvParameters)
 void Init()
 {
     BaseType_t rtn;
-    size_t hpsize;
+//    size_t hpsize;
 
     MbCmd = xQueueCreate(4, sizeof(MotorMsg::MsgType));
     configASSERT(MbCmd);
 
     QMotor = new Queue<VelOmega, true>(650);
-    hpsize = xPortGetFreeHeapSize();
+//    hpsize = xPortGetFreeHeapSize();
     // Create tasks
     rtn = xTaskCreate(task, (const portCHAR *)"TopMotor",
                 tskStkSize, NULL, tskPrio, NULL);

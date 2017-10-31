@@ -25,6 +25,7 @@ TskMotor/WheelEnc.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/P
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/timer.h
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/interrupt.h
 TskMotor/WheelEnc.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h
+TskMotor/WheelEnc.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h
 
 ../TskMotor/WheelEnc.cpp: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/WheelEnc.h: 
@@ -51,3 +52,4 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/PinConfig/pinout.h:
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/timer.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/interrupt.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h: 

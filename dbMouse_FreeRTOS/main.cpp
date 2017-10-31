@@ -32,12 +32,9 @@
 int main(void)
 {
     // Initialize system clock to 120 MHz
-    uint32_t output_clock_rate_hz;
-    output_clock_rate_hz = ROM_SysCtlClockFreqSet(
-                               (SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN |
-                                SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
-                               SYSTEM_CLOCK);
-    ASSERT(output_clock_rate_hz == SYSTEM_CLOCK);
+    ROM_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN |
+                            SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
+                            SYSTEM_CLOCK);
 
     ROM_FPULazyStackingEnable();
     ROM_FPUEnable();

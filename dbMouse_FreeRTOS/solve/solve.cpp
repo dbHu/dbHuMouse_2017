@@ -61,9 +61,6 @@ void breakBeforeRun()
 		if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
 		{
 			TskTop::SetLeds(0x0f);
-			TskMotor::DistanceAcc = 0.f;
-			TskMotor::AngleAcc = 0.f;
-			TskMotor::DistanceAcc_en = 0.f;
 
 			motMsg = TskMotor::MotorMsg::EnableAcqZeros;
 			rtn = xQueuePost(TskMotor::MbCmd, &motMsg, portMAX_DELAY);
@@ -249,7 +246,7 @@ void task(void *pvParameters)
 void Init()
 {
     BaseType_t rtn;
-    BaseType_t hpsize;
+//    BaseType_t hpsize;
 
     MbAct = xQueueCreate(4, sizeof(TskAction::WallStatus));
 	configASSERT(MbAct);
@@ -257,13 +254,13 @@ void Init()
     MbTop = xQueueCreate(4, sizeof(Solve::SolveType));
 	configASSERT(MbTop);
 
-	hpsize = xPortGetFreeHeapSize();
+//	hpsize = xPortGetFreeHeapSize();
 #if RushTest
     QAct = new Queue<TskAction::Act::ActType, true>(256);
 #endif
     rtn = xTaskCreate(task, (const portCHAR *)"SolveTask",
                 tskStkSize, NULL, tskPrio, NULL);
-    hpsize = xPortGetFreeHeapSize();
+//    hpsize = xPortGetFreeHeapSize();
     configASSERT(rtn == pdPASS);
 }
 }

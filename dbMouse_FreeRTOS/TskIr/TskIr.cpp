@@ -177,11 +177,9 @@ void irDetStart()
 
 void irDetInit()
 {
+    HWREG(SYSCTL_RCGCTIMER) |= 0x000000020;            // enable Timer5
     SemIrAdcFinish = xSemaphoreCreateBinary();
     configASSERT(SemMotTick != NULL);
-
-    HWREG(SYSCTL_RCGCTIMER) |= 0x000000020;            // enable Timer5
-    asm("NOP");
     HWREG(TIMER5_BASE | TIMER_O_CTL) &= ~0x00000001; // GPTM Timer A clear
     HWREG(TIMER5_BASE | TIMER_O_CFG) = 0x00000000;   // 32-bit timer configuration
     HWREG(TIMER5_BASE | TIMER_O_TAMR) = 0x00000002;  // Timer A period mode.
@@ -322,8 +320,8 @@ void task(void *pvParameters)
         irDetStart();
 
 //        LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
-        rtn=xSemaphorePend(SemIrAdcFinish, 2);
-        configASSERT(rtn==pdPASS);
+        rtn = xSemaphorePend(SemIrAdcFinish, 2);
+        configASSERT(rtn == pdPASS);
 //        LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
 
         // calculate distances & bins

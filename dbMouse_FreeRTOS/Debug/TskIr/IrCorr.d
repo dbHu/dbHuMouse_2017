@@ -22,7 +22,7 @@ TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRT
 TskIr/IrCorr.obj: ../TskIr/../TskMotor/TskMotor.h
 TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h
 TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h
-TskIr/IrCorr.obj: ../TskIr/../physparams.h
+TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Physparams.h
 TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/DbgUart.h
 TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/TskTop.h
 TskIr/IrCorr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h
@@ -56,7 +56,7 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h
 ../TskIr/../TskMotor/TskMotor.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h: 
-../TskIr/../physparams.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Physparams.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/DbgUart.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/TskTop.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h: 

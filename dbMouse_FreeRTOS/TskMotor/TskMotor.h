@@ -11,6 +11,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "Queue/Queue.h"
+#include "Physparams.h"
 
 namespace TskMotor{
 
@@ -51,7 +52,6 @@ struct VelOmega
 //        return *this;
 //    }
 };
-
 extern volatile float EncLVel;
 extern volatile float EncRVel;
 extern volatile float EncVel; // avg velocity from 2 encoders
@@ -60,11 +60,13 @@ extern volatile float AcclX, GyroZ; // y-axis acceleration & z-axis angular velo
 extern volatile float LV, AV;   // lv & av feedback for PIDs
 extern volatile float DistanceAcc,AngleAcc,DistanceAcc_en,DesireDistance;
 extern volatile float CurrentV;	// Current Desired Linear Velocity
-
+extern float dist_en[240], vel_de[240], lv[240];
 extern QueueHandle_t MbCmd;
 extern Queue<VelOmega, true> *QMotor;
 void Init();
 
+extern volatile PidParam pidparam;
 }
+
 
 #endif /* MOTOR_H_ */
