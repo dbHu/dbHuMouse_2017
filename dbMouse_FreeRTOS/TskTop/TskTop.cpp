@@ -163,7 +163,7 @@ void irMonitor()
            vTaskDelay(50);
        }
        sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.4f:%1d",
-               .5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns), TskIr::IrBins.Fwd,
+               TskIr::irDistFwd(), TskIr::IrBins.Fwd,
                TskIr::IrDists.FLns, TskIr::IrBins.FLns,
                TskIr::IrDists.FRns, TskIr::IrBins.FRns
        );
@@ -171,21 +171,21 @@ void irMonitor()
        configASSERT(rtn == pdPASS);
        vTaskDelay(50);
 
-//       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
-//               TskIr::IrDists.LS, TskIr::IrBins.LS,
-//               TskIr::IrDists.RS, TskIr::IrBins.RS,
-//               TskIr::IrYaw.byLS * 180.f / 3.1415927f,
-//               TskIr::IrYaw.byRS * 180.f / 3.1415927f,
-//               TskIr::IrYaw.byFLR * 180.f / 3.1415927f
-//               // TskIr::IrInts.sl,
-//               // TskIr::IrInts.sr
-//        );
-        sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
-             TskIr::IrInts.fl, TskIr::IrDists.FLns,
-             TskIr::IrInts.fr, TskIr::IrDists.FRns,
-             TskIr::IrInts.sl, TskIr::IrDists.LS,
-             TskIr::IrInts.sr, TskIr::IrDists.RS
+       sprintf(dbgStr, "%7.4f:%1d\t%7.4f:%1d\t%7.1f\t%7.1f\t%7.1f\r\n",
+               TskIr::IrDists.LS, TskIr::IrBins.LS,
+               TskIr::IrDists.RS, TskIr::IrBins.RS,
+               TskIr::IrYaw.byLS * 180.f / 3.1415927f,
+               TskIr::IrYaw.byRS * 180.f / 3.1415927f,
+               TskIr::IrYaw.byFLR * 180.f / 3.1415927f
+               // TskIr::IrInts.sl,
+               // TskIr::IrInts.sr
         );
+//        sprintf(dbgStr, "%4d,%6.4f,%4d,%6.4f,%4d,%6.4f,%4d,%6.4f\r\n",
+//             TskIr::IrInts.fl, TskIr::IrDists.FLns,
+//             TskIr::IrInts.fr, TskIr::IrDists.FRns,
+//             TskIr::IrInts.sl, TskIr::IrDists.LS,
+//             TskIr::IrInts.sr, TskIr::IrDists.RS
+//        );
         rtn = xQueuePost(TskPrint::MbCmd, dbgStr, portMAX_DELAY);
         configASSERT(rtn == pdPASS);
 
@@ -230,17 +230,17 @@ void actionTest(void)
             vTaskDelay(50);
             MotorStop();
         }
-//        for(int i = 0; i < 240; i++){
-//            sprintf(dbgStr, "%7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
-//                    TskAction::Info[i],
-//                    TskAction::Desire[i],
-//                    TskMotor::dist_en[i],
-//                    TskMotor::vel_de[i],
-//                    TskMotor::lv[i]);
-//            rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
-//            configASSERT(rtn == pdPASS);
-//            vTaskDelay(50);
-//        }
+        for(int i = 0; i < 240; i++){
+            sprintf(dbgStr, "%7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+                    TskAction::Info[i],
+                    TskAction::Desire[i],
+                    TskMotor::dist_en[i],
+                    TskMotor::vel_de[i],
+                    TskMotor::lv[i]);
+            rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
+            configASSERT(rtn == pdPASS);
+            vTaskDelay(50);
+        }
         break;
     }
 }
@@ -375,34 +375,24 @@ void actPrint(TskAction::Act::ActType act)
     bool rtn;
     switch(act)
     {
-    case TskAction::Act::Start:
-        sprintf(dbgStr, "Act Start.\n");
+    case TskAction::Act::Start | TskAction::Act::Corr:
+        rtn = xQueuePost(TskPrint::MbCmd, "S\r\n", 0);
         break;
-    case TskAction::Act::Stop:
-        sprintf(dbgStr, "Act Stop.\n");
+    case TskAction::Act::TBackR | TskAction::Act::Corr:
+        rtn = xQueuePost(TskPrint::MbCmd, "T\r\n", 0);
         break;
-    case TskAction::Act::Back:
-        sprintf(dbgStr, "Act Back.\n");
+    case TskAction::Act::Fwd | TskAction::Act::Corr:
+        rtn = xQueuePost(TskPrint::MbCmd, "^\r\n", 0);
         break;
-    case TskAction::Act::Restart:
-        sprintf(dbgStr, "Act Restart.\n");
+    case TskAction::Act::L90 | TskAction::Act::Corr:
+        rtn = xQueuePost(TskPrint::MbCmd, "<\r\n", 0);
         break;
-    case TskAction::Act::Fwd:
-        sprintf(dbgStr, "Act Fwd.\n");
-        break;
-    case TskAction::Act::L90:
-        sprintf(dbgStr, "Act L90.\n");
-        break;
-    case TskAction::Act::R90:
-        sprintf(dbgStr, "Act R90.\n");
-        break;
-    case TskAction::Act::Null:
-        sprintf(dbgStr, "Act Null.\n");
+    case TskAction::Act::R90 | TskAction::Act::Corr:
+        rtn = xQueuePost(TskPrint::MbCmd, ">\r\n", 0);
         break;
     }
-    rtn = xQueuePost(TskPrint::MbCmd, dbgStr, portMAX_DELAY);
     configASSERT(rtn == pdPASS);
-    vTaskDelay(50);
+//    vTaskDelay(50);
 }
 
 void dbgPutModeName(MouseMode::ModeType mode)

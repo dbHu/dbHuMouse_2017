@@ -22,6 +22,7 @@
 #include "../TskIr/TskIr.h"
 #include "../TskTop/DbgUart.h"
 #include "TskMotor/WheelEnc.h"
+#include "TskMotor/TskMotor.h"
 #include "PinConfig/pinout.h"
 
 // FreeRTOS includes
@@ -46,12 +47,13 @@ volatile IrDist IrDists = {{9.9f, 9.9f, 9.9f, 9.9f}};//, 9.9f, 9.9f, 9.9f, 9.9f}
 volatile IrDistBinThs IrBinThs;
 volatile IrDistBins IrBins;
 volatile IrHeadingYaw IrYaw;
+volatile float SideWallDisPos;
 
 volatile unsigned short irZeros[4] = {1, 1, 1, 1};
 
 char dbgStr[128];
 
-inline float irDistFwd()
+float irDistFwd()
 {
     if(IrBins.LS == 0)
     {
@@ -69,7 +71,7 @@ inline float irDistFwd()
             return IrDists.FRns;
         }
         else
-            return ((IrBins.LS > IrBins.RS)? IrBins.LS:IrBins.RS);
+            return (IrDists.FLns >= IrDists.FRns? IrDists.FLns : IrDists.FRns);
     } 
     // return .5f * ((IrBins.LS? IrDists.FLws : IrDists.FLns) + (IrBins.RS? IrDists.FRws : IrDists.FRns));
 
@@ -219,9 +221,11 @@ void irDetInit()
 void irCalcs()
 {
     int i;
+    bool WallLS, WallRS;
     if(!isnormal(IrACs.k[0][0]))
         return;
-
+    WallLS = TskIr::IrBins.LS;
+    WallRS = TskIr::IrBins.RS;
     // calc distance
     for(i = 0; i < 4; i++)
     {
@@ -253,6 +257,10 @@ void irCalcs()
         {
             if(IrDists.ch[i] > 0.001f * (float)IrBinThs.ch[i].ThHi)
                 IrBins.ch[i] = 0;
+            if(TskIr::IrBins.LS != WallLS || TskIr::IrBins.RS !=  WallRS)
+            {
+                SideWallDisPos = TskMotor::DistanceAcc;
+            }
         }
         else
         {
@@ -262,14 +270,17 @@ void irCalcs()
     }
     if(IrBins.Fwd)
     {
-        if(irDistFwd() > 0.001f * (float)IrBinThs.Fwd.ThHi)
+        if(irDistFwd() > 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.LS)?
+                (float)IrBinThs.Fwd2.ThHi : (float)IrBinThs.Fwd1.ThHi))
             IrBins.Fwd = 0;
     }
     else
     {
-        if(irDistFwd() < 0.001f * (float)IrBinThs.Fwd.ThLo)
+        if(irDistFwd() < 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.LS)?
+                (float)IrBinThs.Fwd2.ThLo : (float)IrBinThs.Fwd1.ThLo))
             IrBins.Fwd = 1;
     }
+
     // side yaw
     IrYaw.byLS = (PP::CenterToWall - IrDists.LS) / PP::IrSFwd;
     IrYaw.byRS = (IrDists.RS - PP::CenterToWall) / PP::IrSFwd;
@@ -294,11 +305,12 @@ void task(void *pvParameters)
 #endif
 
     //TODO
-    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (105 | (125 << 16));
-    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (100 | (120 << 16));
-    IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (55 | (75 << 16));
-    IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (60 | (80 << 16));
-    IrBins.Fwd   = 0; IrBinThs.Fwd.Th   = (100 | (125 << 16));
+    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (135 | (145 << 16));
+    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (135 | (145 << 16));
+    IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (65 | (75 << 16));
+    IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (60 | (70 << 16));
+    IrBins.Fwd   = 0; IrBinThs.Fwd1.Th   = (135 | (145 << 16));
+                      IrBinThs.Fwd2.Th   = (115 | (125 << 16));
     // IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (250 | (285 << 16));
     // IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (250 | (285 << 16));
     // IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (150 << 16));

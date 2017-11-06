@@ -116,7 +116,7 @@ union IrDistBinTh
 };
 union IrDistBinThs
 {
-    IrDistBinTh ch[5];
+    IrDistBinTh ch[6];
     struct
     {
         IrDistBinTh FLns;
@@ -127,7 +127,8 @@ union IrDistBinThs
 //        IrDistBinTh LF;
         IrDistBinTh RS;
 //        IrDistBinTh RF;
-        IrDistBinTh Fwd;
+        IrDistBinTh Fwd1;
+        IrDistBinTh Fwd2;
     };
 };
 #pragma pack(pop)
@@ -182,6 +183,7 @@ extern volatile IrDistBinThs IrBinThs;
 extern volatile IrDistBins IrBins;
 extern volatile IrHeadingYaw IrYaw;
 
+extern volatile float SideWallDisPos;
 extern QueueHandle_t MbCmd;
 
 extern const char *IrChNames[]; // = {"FLns", "FLws", "FRns", "FRws", "LS  ", "LF  ", "RS  ", "RF  "};
@@ -199,6 +201,8 @@ void Init();
 bool TestIrTouch(unsigned char chMask, int hTh, int lTh);
 // this func will block!
 void WaitIrTouch(unsigned char chMask, int hTh, int lTh);
+
+extern float irDistFwd();
 
 }
 

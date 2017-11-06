@@ -78,9 +78,9 @@ volatile PidParam pidparam;
 Matrix2x2  A(1.f, PP::Ts, 0.f, 1.f);
 Vector2    B(1/2.f * 1e-6f, 1e-3f);
 Matrix2x2  H(1.f, 0.f, 0.f, 1.f);
-Matrix2x2  Q(1e-12f * (1.25f * 1e-5f + 0.34f * 0.34f)/ 4.f * 3.f, 
-             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f, 
-             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f, 
+Matrix2x2  Q(1e-12f * (1.25f * 1e-5f + 0.34f * 0.34f)/ 4.f * 3.f,
+             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f,
+             1e-9f * (1.25f * 1e-5f + 0.34f * 0.34f) / 2.f * 3.f,
              1e-6f * (1.25f * 1e-5f + 0.34f * 0.34f) * 3.f);
 Matrix2x2  R(1e-6f * 0.16654957f, 0, 0, 0.16654957f);
 Vector2    x0;
@@ -224,6 +224,13 @@ void task(void *pvParameters)
 #endif
         if(MotorEnabled)
         {
+            if(AV > 20.f)
+            {
+                sprintf(dbgStr, "gzero:%7.3f\r\n", AV);
+                rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
+            }
+
             // read dlv&dav from fifo
             QMotor->De(desire); // dequeue, if empty desire will not change
 
@@ -299,8 +306,8 @@ void task(void *pvParameters)
                         TskMotor::DistanceAcc,
                         TskMotor::DistanceAcc_en,
                         TskMotor::AngleAcc);
-                rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, portMAX_DELAY);
-                vTaskDelay(50);
+                rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
 
                 DistanceAcc = 0.f;
                 DesireDistance = 0.f;

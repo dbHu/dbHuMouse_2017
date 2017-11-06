@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include <stdlib.h>
 
 // FreeRTOS includes
@@ -242,7 +243,7 @@ void paramsCorr(void)
                     CP.TURNL90_POST_ADJ);
             print(TskTop::dbgStr);
 
-            cmd = strtok(input, d);
+            cmd = strtok(NULL, d);
             temp = atof(cmd);
             CP.TURNL90_PRE_ADJ += temp;
             cmd = strtok(NULL, d);
@@ -317,41 +318,31 @@ void paramsCorr(void)
             temp = atof(cmd);
             CP.STOPEND_DIST_ADJ += temp;
 
-            sprintf(TskTop::dbgStr, "RESTART ADJ DIST:%5.3f\r\n", CP.STOPEND_DIST_ADJ);
+            sprintf(TskTop::dbgStr, "STOP ADJ DIST:%5.3f\r\n", CP.STOPEND_DIST_ADJ);
             print(TskTop::dbgStr);
         }
 
         else if(!strcmp(cmd, "fwd")) {
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f %5.3f %5.3f\r\n",
-                CP.HEADING_BY_SIRSIDE_START_DIST,
-                CP.HEADING_BY_SIRFWD_BGNSTAT_POS,
-                CP.HEADING_BY_SIRFWD_BEGIN_POS,
+            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f\r\n",
                 CP.LFWDEND_DIST_W2NW,
-                CP.RFWDEND_DIST_W2NW);
+                CP.RFWDEND_DIST_W2NW,
+                CP.CENTIPEDE_CORR_GAIN);
             print(TskTop::dbgStr);
 
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.HEADING_BY_SIRSIDE_START_DIST += temp;
-            cmd = strtok(input, d);
-            temp = atof(cmd);
-            CP.HEADING_BY_SIRFWD_BGNSTAT_POS += temp;
-            cmd = strtok(input, d);
-            temp = atof(cmd);
-            CP.HEADING_BY_SIRFWD_BEGIN_POS   += temp;
             cmd = strtok(NULL, d);
             temp = atof(cmd);
             CP.LFWDEND_DIST_W2NW += temp;
             cmd = strtok(NULL, d);
             temp = atof(cmd);
             CP.RFWDEND_DIST_W2NW += temp;
+            cmd = strtok(NULL, d);
+            temp = atof(cmd);
+            CP.CENTIPEDE_CORR_GAIN += temp;
 
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f %5.3f %5.3f\r\n",
-                CP.HEADING_BY_SIRSIDE_START_DIST,
-                CP.HEADING_BY_SIRFWD_BGNSTAT_POS,
-                CP.HEADING_BY_SIRFWD_BEGIN_POS,
+            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f\r\n",
                 CP.LFWDEND_DIST_W2NW,
-                CP.RFWDEND_DIST_W2NW);
+                CP.RFWDEND_DIST_W2NW,
+                CP.CENTIPEDE_CORR_GAIN);
             print(TskTop::dbgStr);
         }
 
@@ -399,10 +390,7 @@ void paramsCorr(void)
             TskPrint::UartGetLine(input);
 
             if ((input[0] == 'y' || input[0] == 'Y') && input[1] == 0x00) {
-                sprintf(TskTop::dbgStr, "Exiting console, goodbye.\r\n");
-                print(TskTop::dbgStr);
                 exit_flag = 1;
-                break;
             }
         }
 
@@ -426,7 +414,7 @@ void paramsCorr(void)
             print(TskTop::dbgStr);
             sprintf(TskTop::dbgStr, "- str num :[restart adj]\r\n");
             print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[fwd start bgnstat begin lw2nw rw2nw]\r\n");
+            sprintf(TskTop::dbgStr, "- str num :[fwd lw2nw rw2nw centiP]\r\n");
             print(TskTop::dbgStr);
             sprintf(TskTop::dbgStr, "- str num :[back fwd lrangle flryaw lback rback]\r\n");
             print(TskTop::dbgStr);
@@ -445,14 +433,17 @@ void paramsCorr(void)
 
 void pidTest(void)
 {
-    int i=0;
-    bool rtn;
+    int i=0,cmd;
     TskTop::SetLeds(0x7);
 
+    sprintf(TskTop::dbgStr, "please input NUMBER for pid test\r\n");
+    print(TskTop::dbgStr);
+    TskPrint::UartGetLine(input);
+    cmd = atof(input);
+
     sprintf(TskTop::dbgStr, "triggle IR L for V pid, triggle IR R for W PID\r\n");
-    rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, portMAX_DELAY);
-    configASSERT(rtn == pdPASS);
-    vTaskDelay(50);
+    print(TskTop::dbgStr);
+
     while(true){
 #if 1
         while(1){
@@ -463,7 +454,7 @@ void pidTest(void)
                 print(TskTop::dbgStr);
                 MotorStart();
                 TskTop::SetLeds(0x0);
-                for(i = 0; i < 200; i++)
+                for(i = 0; i < cmd; i++)
                     TskMotor::QMotor->En(TskMotor::VelOmega(0.2f,0.f));
                 TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
                 sprintf(TskTop::dbgStr, "QMotor is over\n");
@@ -480,7 +471,7 @@ void pidTest(void)
                 print(TskTop::dbgStr);
                 MotorStart();
                 TskTop::SetLeds(0x0);
-                for(i = 0; i < 200; i++)
+                for(i = 0; i < cmd; i++)
                     TskMotor::QMotor->En(TskMotor::VelOmega(0.f,5.f));
                 TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
                 TskAction::WaitQEnd();
@@ -501,7 +492,7 @@ void SendActionAndWait(TskAction::Act::ActType actMsg)
 {
     bool rtn;
     TskAction::ActMsg::MsgType end_Msg;
-    rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
+    rtn = xQueuePost(TskAction::MbCmd, &actMsg, 0);
     configASSERT(rtn == pdPASS);
     rtn = xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);
     configASSERT(rtn == pdPASS);
@@ -509,10 +500,11 @@ void SendActionAndWait(TskAction::Act::ActType actMsg)
 
 void Action(void)
 {
-    bool exit_flag;
+    bool act_flag = 1;
     TskTop::SetLeds(0x7);
     char *d = " ";
     int num;
+    TskAction::Act::ActType act[8];
 
     sprintf(TskTop::dbgStr, "please input action as format\r\n");
     print(TskTop::dbgStr);
@@ -521,8 +513,20 @@ void Action(void)
 
     while(true)
     {
+        sprintf(TskTop::dbgStr, "please input action as format\r\n");
+        print(TskTop::dbgStr);
+        act_flag = 1;
         TskPrint::UartGetLine(input);
         cmd = strtok(input, d);
+
+        if(!strcmp(cmd, "exit")){
+            sprintf(TskTop::dbgStr, "exit action\r\n");
+            print(TskTop::dbgStr);
+            sprintf(TskTop::dbgStr, "input other command\r\n");
+            print(TskTop::dbgStr);
+            break;
+        }
+
         num = (*cmd - '0');
         if(num > 8){
             sprintf(TskTop::dbgStr, "over the limitation, please input again\r\n");
@@ -535,97 +539,147 @@ void Action(void)
         {
             cmd = strtok(NULL, d);
             if(!strcmp(cmd, "start")){
-                MotorStart();
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::Start);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::Start);
             }
             else if(!strcmp(cmd, "l90")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::L90);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::L90);
             }
             else if(!strcmp(cmd, "l90r")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::L90 | TskAction::Act::Corr));
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::L90 | TskAction::Act::Corr));
             }
             else if(!strcmp(cmd, "r90")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::R90);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::R90);
             }
             else if(!strcmp(cmd, "r90r")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::R90 | TskAction::Act::Corr));
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::R90 | TskAction::Act::Corr));
             }
             else if(!strcmp(cmd, "stop")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::Stop);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::Stop);
             }
             else if(!strcmp(cmd, "stopr")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::Stop | TskAction::Act::Corr));
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Stop | TskAction::Act::Corr));
             }
             else if(!strcmp(cmd, "back")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::Back);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::Back);
             }
             else if(!strcmp(cmd, "backr")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::Back | TskAction::Act::Corr));
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Back | TskAction::Act::Corr));
             }
             else if(!strcmp(cmd, "fwd")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::Fwd);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::Fwd);
             }
             else if(!strcmp(cmd, "fwdr")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::Fwd | TskAction::Act::Corr));
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Fwd | TskAction::Act::Corr));
             }
             else if(!strcmp(cmd, "restart")){
-                SendActionAndWait((TskAction::Act::ActType) TskAction::Act::Restart);
+                act[i] = ((TskAction::Act::ActType) TskAction::Act::Restart);
             }
             else if(!strcmp(cmd, "restartr")){
-                SendActionAndWait((TskAction::Act::ActType) (TskAction::Act::Restart | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "exit")){
-                sprintf(TskTop::dbgStr, "exit action");
-                print(TskTop::dbgStr);
-                exit_flag = 1;
+                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Restart | TskAction::Act::Corr));
             }
             else {
                 sprintf(TskTop::dbgStr, "%s doesn't exist", cmd);
-                print(TskTop::dbgStr); 
-                vTaskDelay(5000);
+                print(TskTop::dbgStr);
+                act_flag = 0;
+                break;
             }
         }
-        MotorStop();
-        if(exit_flag){
-            sprintf(TskTop::dbgStr, "input other command\n");
-            print(TskTop::dbgStr);
-            break;
+
+        if(act_flag){
+            MotorStart();
+            for(int i = 0; i < num; i++)
+            {
+                SendActionAndWait(act[i]);
+            }
+            MotorStop();
         }
+
     }
 }
 
 void RandomMode(void){
-    int randint = 0,i = 100;
+    int randint = 0;
+    char wall[4];
     bool rtn;
 
     TskTop::SetLeds(0x7);
 
     TskAction::Act::ActType actMsg;
-    TskAction::ActMsg::MsgType end_Msg;
 
-    sprintf(TskTop::dbgStr, "Start Random Mode\r\n");
-    print(TskTop::dbgStr);
     MotorStart();
-
+    SendActionAndWait(((TskAction::Act::ActType) TskAction::Act::Start));
     while(true){
-        srand(i);
-        randint = rand() % 3;
-        sprintf(TskTop::dbgStr, "Start Random Mode\r\n");
-        rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, 0);
-        configASSERT(rtn == pdPASS);
-        //F L R
-        if(randint == 0)
+        randint = TskIr::IrInts.ch[0];
+//        randint = 0;
+        wall[0] = '#';
+        wall[1] = '#';
+        wall[2] = '#';
+        //L F R
+        if((randint % 4) == 0)
         {
-            if(!TskIr::IrBins.Fwd)
+            if(!TskIr::IrBins.LS)
             {
+                wall[0] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
+            }
+            else if(!TskIr::IrBins.Fwd)
+            {
+                TskTop::SetLeds(0x1);
+                wall[1] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
+            }
+            else if(!TskIr::IrBins.RS)
+            {
+                wall[2] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
+            }
+            else
+            {
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
+            }
+        }
+
+        //R F L
+        else if((randint % 4) == 1)
+        {
+            if(!TskIr::IrBins.RS)
+            {
+                wall[2] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
+            }
+            else if(!TskIr::IrBins.Fwd)
+            {
+                TskTop::SetLeds(0x1);
+                wall[1] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
             }
             else if(!TskIr::IrBins.LS)
             {
+                wall[0] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
+            }
+            else
+            {
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
+            }
+        }
+        //F L R
+        else if((randint % 4)== 2)
+        {
+            if(!TskIr::IrBins.Fwd)
+            {
+                TskTop::SetLeds(0x1);
+                wall[1] = '_';
+                actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
+            }
+            else if(!TskIr::IrBins.LS)
+            {
+                wall[0] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
             }
             else if(!TskIr::IrBins.RS)
             {
+                wall[2] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
             }
             else
@@ -634,18 +688,22 @@ void RandomMode(void){
             }
         }
         //F R L
-        else if(randint == 1)
+        else
         {
             if(!TskIr::IrBins.Fwd)
             {
+                TskTop::SetLeds(0x1);
+                wall[1] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
             }
             else if(!TskIr::IrBins.RS)
             {
+                wall[2] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
             }
             else if(!TskIr::IrBins.LS)
             {
+                wall[0] = '_';
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
             }
             else
@@ -653,50 +711,17 @@ void RandomMode(void){
                 actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
             }
         }
-        //L F R
-        else if(randint == 2)
-        {
-            if(!TskIr::IrBins.LS)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
-            }
-            else if(!TskIr::IrBins.Fwd)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
-            }
-            else if(!TskIr::IrBins.RS)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
-            }
-            else
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
-            }
-        }
-        //R F L
-        else
-        {
-            if(!TskIr::IrBins.RS)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::R90 | TskAction::Act::Corr);
-            }
-            else if(!TskIr::IrBins.Fwd)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::Fwd | TskAction::Act::Corr);
-            }
-            else if(!TskIr::IrBins.LS)
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::L90 | TskAction::Act::Corr);
-            }
-            else
-            {
-                actMsg = (TskAction::Act::ActType)(TskAction::Act::TBackR | TskAction::Act::Corr);
-            }
-        }
-        TskTop::actPrint(actMsg);
-       
-        rtn = xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);
+        rtn = xQueuePost(TskPrint::MbCmd, wall, 0);
         configASSERT(rtn == pdPASS);
-        i += 100;
+        if(wall[0] == '#' && wall[1] == '#' && wall[2] == '#')
+        {
+            sprintf(TskTop::dbgStr, "%6.3f %6.3f", TskIr::irDistFwd(), TskIr::IrDists.RS);
+            rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, 0);
+            configASSERT(rtn == pdPASS);
+        }
+        TskTop::SetLeds(0x0);
+
+        TskTop::actPrint(actMsg);
+        SendActionAndWait(actMsg);
     }
 }

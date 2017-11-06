@@ -24,7 +24,6 @@
 #include "solve/solve.h"
 
 #define BACK_CORR_PID_P     100.0f
-#define CENTIPEDE_CORR_GAIN 0.05f
 
 RushParam   SP;
 SeachParam  CP;
@@ -32,6 +31,7 @@ SeachParam  CP;
 namespace TskAction
 {
 
+char dbgStr[128];
 float v_s[512],o_s[512];
 //float v_s[PP::SeqArrayLen],o_s[PP::SeqArrayLen];
 
@@ -56,6 +56,7 @@ Pid *actHDirPid;
 WallStatus cur_wall;
 WallStatus nextWall;
 float distZero;
+bool reported;
 // word: |        2        |                                        1                                             |     0   |
 // byte: | 11..10 | 09..08 |                07                |                    06                  |  05..04  |  03..00 |
 // bit:  | 31..16 | 15..00 | 31..28 |  27 |  26 |  25  |  24  | 23..20 |  19  |   18  |   17  |   16   |  15..00  |  31..00 |
@@ -77,11 +78,29 @@ void WaitQEnd(void)
 {
     bool rtn;
 
-    while(TskMotor::QMotor->Len() > 1)
+    while(TskMotor::QMotor->Len() > 0)
     {
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
     }
+}
+
+void report(float pos, float distzero)
+{
+    bool rtn;
+    //Get wall info
+    if(!reported && TskMotor::DistanceAcc - distZero > pos)
+    {
+        GetWallInfo(&nextWall);
+        rtn = xQueuePost(solve::MbAct, &nextWall, (TickType_t)0);
+        configASSERT(rtn == pdPASS || rtn == errQUEUE_FULL);
+        reported = 1;
+    }
+}
+
+int MotionSeqLen(void)
+{
+    return (TskMotor::QMotor->Len());
 }
 
 int MotionCalcFwd(float v0, float v1, float s, float *vs)
@@ -124,21 +143,8 @@ int MotionCalcRotate(float ang, float mu, float *omgs)
 
 int MotionCalcTurn(float v, float ang, float mu, float *omgs, float *requ)
 {
-//    static float lastV = 0.0f, lastAng = 0.0f, lastMu = 0.0f;
-//    static float lastOmgs[256] = {0.0f}, lastRequ = 0.0f, lastCnt;
-
     if(v < 0.001f && v > -0.001f)
         return MotionCalcRotate(ang, mu, omgs);
-
-//    if(lastV == v && lastAng == ang && lastMu == mu)
-//    {
-//        *requ = lastRequ;
-//        memcpy(omgs, lastOmgs, lastCnt * sizeof(float));
-//        return lastCnt;
-//    }
-//    else
-//    {
-//        lastV = v; lastAng = ang; lastMu = mu;
 
         float ha = ang > 0.0f ? ang / 2.0f : ang / -2.0f;
         float omg = 0.0f, tht = 0.0f, x = 0.0f, y = 0.0f;
@@ -174,19 +180,13 @@ int MotionCalcTurn(float v, float ang, float mu, float *omgs, float *requ)
             omgs[2 * n - 2 - i] = omgs[i];
         }
         omgs[2 * n - 1] = 0.0f;
-        /*lastRequ =*/ *requ = x / tanf(tht) + y;
-        //lastCnt = 2 * n;
-        //memcpy(lastOmgs, omgs, lastCnt * sizeof(float));
+         *requ = x / tanf(tht) + y;
         return 2 * n;
-//    }
 }
 
 float actHeadingDirCorrBySideIrSide(WallStatus *wall)
 {
-#if ENABLE_CORRECTION == 0
-    return 0.0f;
-#endif
-
+    TskTop::SetLeds(0x2);
     float yaw;
     if(wall->left)
     {
@@ -201,410 +201,412 @@ float actHeadingDirCorrBySideIrSide(WallStatus *wall)
         yaw = TskIr::IrYaw.byRS;
     else
         yaw = 0.0f;
-//    if(yaw > 45 * PP::PI / 180.f)
-//    	yaw = 45 * PP::PI / 180.f;
-//    if(yaw < -45 * PP::PI / 180.f)
-//    	yaw = -45 * PP::PI / 180.f;
 
+    TskTop::SetLeds(0x4);
     return actHDirPid->Tick(-yaw);
 }
 
 float actHeadingDirCorrByFwdIr(WallStatus *wall)
 {
-#if ENABLE_CORRECTION == 0
-    return 0.0f;
-#endif
 
     float yaw;
+    TskTop::SetLeds(0x2);
     yaw = TskIr::IrYaw.byFLR;
-//
-//    if(yaw > 10 * PP::PI / 180.f)
-//    	yaw = 10 * PP::PI / 180.f;
-//    if(yaw < -10 * PP::PI / 180.f)
-//    	yaw = -10 * PP::PI / 180.f;
-
+    TskTop::SetLeds(0x2);
     return actHDirPid->Tick(CP.FLRYAWERROR-yaw);
 }
 
-float actFwdDisCorrByFwdIr(WallStatus *wall)
+float actFwdDistCorrByFwdIr(WallStatus *wall)
 {
 #if ENABLE_CORRECTION == 0
     return 0.0f;
 #endif
-
+    TskTop::SetLeds(0x2);
     float dist;
+//    bool rtn;
 //    dist = 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns) - PP::CenterToWall - CP.FWDDISERROR;
     dist = CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns));
 
-    if(dist > 0.005f)
-    	dist = 0.005f;
-    else if(dist < -0.005f)
-    	dist = -0.005f;
+    if(dist > 0.02f)
+    	dist = 0.02f;
+    else if(dist < -0.02f)
+    	dist = -0.02f;
+    if(fabs(dist) < 0.001f)
+        dist = 0.f;
+# if 0
+        sprintf(dbgStr, "dist:%6.3f\r\n", dist);
+        rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+        configASSERT(rtn == pdPASS);
+#endif
+
     return (dist * CORR_BACKCENTER_ADJ);
 }
 
 // detect whether wall disappeared, if yes, flush
-int actFwdEndCorrBySideWallDisappear(WallStatus *wall, float v0, float v1,  float d)
+int actFwdEndCorrBySideWallDisappear(WallStatus *wall, float v0, float v1,  float *d)
 {
-#if ENABLE_CORRECTION == 0
-    return 0;
-#endif
-
     int len, i;
+//    bool rtn;
     float s;
-    if((wall->left && TskIr::IrBins.LS == 0) || (wall->right && TskIr::IrBins.RS == 0))
-    {
 
-    	s = (TskIr::IrBins.LS?CP.LFWDEND_DIST_W2NW : CP.RFWDEND_DIST_W2NW);
+    if((wall->left && (TskIr::IrBins.LS == 0)) || (wall->right && (TskIr::IrBins.RS == 0)))
+    {
+        TskTop::SetLeds(0x02);
+
+    	*d = s = ((wall->left && (TskIr::IrBins.LS == 0))? CP.LFWDEND_DIST_W2NW : CP.RFWDEND_DIST_W2NW)
+    	        + TskIr::SideWallDisPos - TskMotor::DistanceAcc;
+        # if 0
+                sprintf(dbgStr, "s:%6.3f\r\n", s);
+                rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
+                sprintf(dbgStr, "%6.3f %6.3f\r\n", TskIr::SideWallDisPos, TskMotor::DistanceAcc);
+                rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
+        #endif
         // clear motion seq
         TskMotor::QMotor->Clear();
         // add
         len = MotionCalcFwd(v0, v1, s, v_s);
+        # if 0
+                sprintf(dbgStr, "%d\r\n", len);
+                rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                configASSERT(rtn == pdPASS);
+        #endif
         for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-#if DBG_PRINT_ACT_INFO > 0
-        sprintf(TskTop::dbgStr, "\tFwdEnd@: %dmm\n", (int)(d * 1000.0f));
-        rtn = xQueuePost(TskPrint::MbCmd,dbgStr, (TickType_t)0);
-        configASSERT(rtn == pdPASS);
-#endif
 
         return 1;
     }
     return 0;
 }
 
-void actStart()
+int actLRDistCorrByFwdIr(Act::ActType act, float pos)
 {
-	int i, len;
-    //0.015mm 0.36m/s 83ms
-    len = MotionCalcFwd(0.0f, PP::SearchSpeed, PP::StartAcclDist, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed,
-    		PP::StartTotalDist - PP::StartAcclDist, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    TskTop::SetLeds(0x00);
-    WaitQEnd();
-    TskTop::SetLeds(0x01);
-}
-
-unsigned int actStop()
-{
-	int i, len;
-	float stopDist;
-
-    TskTop::SetLeds(0x02);
-    GetWallInfo(&cur_wall);
-    stopDist = PP::StopTotalDist-PP::StopAccDist;
-    len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, stopDist, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    stopDist = PP::StopAccDist;
-    len = MotionCalcFwd(PP::SearchSpeed, 0.0f, stopDist, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
-    TskTop::SetLeds(0x03);
-    vTaskDelay(750);
-    return cur_wall.msk;
-}
-
-void actBack()
-{
-    int i, len;
-    //TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-
-    float tht =  PP::PI / 2.f;
-
-    len = MotionCalcRotate(tht, 0.5f * PP::Mu, o_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(0.f,o_s[i]));
-    WaitQEnd();
-    len = MotionCalcRotate(tht, 0.5 * PP::Mu, o_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(0.f,o_s[i]));
-    WaitQEnd();
-   // vTaskDelay(1000);
-}
-
-void actRestart()
-{
-    int i, len;
-    //TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-
-    len = MotionCalcFwd(0.0f, PP::SearchSpeed, PP::RestartDist + CP.RESTART_DIST_ADJ, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
-}
-
-void actTurnBack()
-{
-	actStop();
-	actBack();
-	actRestart();
-}
-
-void actFwd()
-{
-    int i, len;
-    len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, PP::GridSize, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
-}
-
-void actLR90(Act::ActType act)
-{
-    float requ;
-    int i, vslen, oslen;
-    TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-
-    oslen = MotionCalcTurn(PP::SearchSpeed, act == Act::L90 ?
-    		(float)PP::PI_2 : -(float)PP::PI_2, PP::Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize / 2.f - requ)
-            + (act == Act::L90 ? CP.TURNL90_PRE_ADJ : CP.TURNR90_PRE_ADJ);
-
-    float straightPost = (PP::GridSize / 2.f - requ)
-            + (act == Act::L90 ?  CP.TURNL90_POST_ADJ : CP.TURNR90_POST_ADJ);
-
-    vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPre, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(PP::SearchSpeed,o_s[i]));
-
-    vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
+    bool rtn;
+    float dist;
+    dist = (act == Act::L90 ? TskIr::IrDists.FLns : TskIr::IrDists.FRns);
+//    int i = 0;
+    if(cur_wall.fwd)
+    {
+        while(dist > pos)
+        {
+            rtn = xSemaphorePend(SemActTick, 2);
+            configASSERT(rtn == pdPASS);
+            # if 0
+                if(i == 4){
+                    sprintf(dbgStr, "%6.3f %6.3f\r\n", dist, pos);
+                    rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                    configASSERT(rtn == pdPASS);
+                    i = 0;
+                }
+                else i++;
+            #endif
+            dist = (act == Act::L90 ? TskIr::IrDists.FLns : TskIr::IrDists.FRns);
+        }
+        TskTop::SetLeds(0x02);
+        TskMotor::QMotor->Clear();
+    }
+    return 0;
 }
 
 void actCRush(void)
 {
     int i, len;
+    bool rtn;
+    TskTop::SetLeds(0x2);
     len = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, PP::GridSize, v_s);
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+    TskTop::SetLeds(0x0);
+    while(1){
+        rtn = xSemaphorePend(SemActTick, 2);
+        configASSERT(rtn == pdPASS);
 
-    WaitQEnd();
+        report(PP::GridSize - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
 }
+
 //TODO
 void actTRush(void){
     int i, len;
-    bool flag,rtn;
-	TskTop::SetLeds(0x0);
+//    bool flag;
+    bool rtn;
+	TskTop::SetLeds(0x2);
     distZero = TskMotor::DistanceAcc;
     len = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TRushDist, v_s);
 
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
-    if(TskIr::IrDists.LS < TskIr::IrDists.RS)	flag = 1;
-    else flag = 0;
-    while(TskMotor::DistanceAcc - distZero < SP.TRushDist)
-    {
+//     if(TskIr::IrDists.LS < TskIr::IrDists.RS)	flag = 1;
+//     else flag = 0;
+//     while(TskMotor::DistanceAcc - distZero < SP.TRushDist)
+//     {
+//         rtn = xSemaphorePend(SemActTick, 2);
+//         configASSERT(rtn == pdPASS);
+// 		IRint = (flag?TskIr::IrDists.LS : TskIr::IrDists.RS);
+// 		if(IMin < 0.001f) IMin = IRint;
+// //		IRint = TskIr::IrDists.LS;
+// 		if(fabs(IRint - (flag?SP.TRushL_MAX_DIST : SP.TRushR_MAX_DIST)) < SP.ERRDist
+// 					&& IMin < (flag?SP.TRushL_MIN_DIST : SP.TRushR_MIN_DIST))
+// //		if(IRint > SP.TRushL_MAX_DIST)
+// 		{
+// 			TskMotor::QMotor->Clear();
+// 			TskTop::SetLeds(0xf);
+// 			len = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TRushComDist, v_s);
+// 			for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+// 			break;
+// 		}
+// 		if(IMin > IRint) IMin = IRint;
+//     }
+//     IMin = 0.f;
+    TskTop::SetLeds(0x0);
+    while(1){
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
-		IRint = (flag?TskIr::IrDists.LS : TskIr::IrDists.RS);
-		if(IMin < 0.001f) IMin = IRint;
-//		IRint = TskIr::IrDists.LS;
-		if(fabs(IRint - (flag?SP.TRushL_MAX_DIST : SP.TRushR_MAX_DIST)) < SP.ERRDist
-					&& IMin < (flag?SP.TRushL_MIN_DIST : SP.TRushR_MIN_DIST))
-//		if(IRint > SP.TRushL_MAX_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-			len = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TRushComDist, v_s);
-			for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
+
+        report(SP.TRushDist - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
     }
-    IMin = 0.f;
-    WaitQEnd();
 }
+
 //start
 void actRushIn(void){
 	int i, len;
+	bool rtn;
+    TskTop::SetLeds(0x2);
     len = MotionCalcFwd(0.0f, SP.RushSpeed, SP.RushInAcclDist, v_s);
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
+    TskTop::SetLeds(0x0);
+    while(1){
+        rtn = xSemaphorePend(SemActTick, 2);
+        configASSERT(rtn == pdPASS);
+
+        report(SP.RushInAcclDist - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
 }
+
 //stop
 void actRushOut(void){
 	int i, len;
 
+    TskTop::SetLeds(0x2);
 	len = MotionCalcFwd(SP.RushSpeed, 0.0f, SP.RushOutAcclDist, v_s);
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
+    TskTop::SetLeds(0x0);
     WaitQEnd();
     vTaskDelay(750);
 }
 
-void actL45i(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize - requ - SP.TURNLI45_PRE_ADJ);
-    float straightPost = (PP::GridSize - requ + SP.TURNLI45_POST_ADJ);
-
-	TskTop::SetLeds(0x0);
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.LS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNLI45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLI45_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-			vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNLI45_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-	   if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-void actR45i(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
-
-	TskTop::SetLeds(0x0);
-    float straightPre = (PP::GridSize - requ - 1.8 * SP.TURNRI45_PRE_ADJ);
-    float straightPost = (PP::GridSize - requ + SP.TURNRI45_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNRI45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRI45_MIN_DIST)
-		//if(!IRint && IRmax > SP.TURNRI45_MAX_IR)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNRI45_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-void actL135i(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 * 3 / 2.f, PP::Mu, o_s, &requ);
-
-	TskTop::SetLeds(0x0);
-    float straightPre = (PP::GridSize - requ);
-    float straightPost = (PP::GridSize - requ + SP.TURNLI135_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.LS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNLI135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLI135_MIN_DIST)
-		{
-			TskTop::SetLeds(0xf);
-			TskMotor::QMotor->Clear();
-		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNLI135_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-void actR135i(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 * 3 / 2.f, PP::Mu, o_s, &requ);
-
-	TskTop::SetLeds(0x0);
-    float straightPre = (PP::GridSize - requ);
-    float straightPost = (PP::GridSize - requ + SP.TURNRI135_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNRI135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRI135_MIN_DIST)
-		//if(IRint && IRmax > SP.TURNRI135_MAX_IR)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNRI135_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
+//void actLR45io(bool corr, Act::ActType act)
+//{
+//    int i, len;
+//    const float irSideDistAt45oBegin = 0.053f;
+//
+//    reported = 0;
+//
+//    TskTop::SetLeds(0x2);
+//
+//    GetWallInfo(&cur_wall);
+//
+//    bool isLeft = ((u32)act & (u32)Action::MaskDir) == (u32)Action::DirLeft;
+//    bool isIn = ((u32)act & (u32)Action::MaskIo) == (u32)Action::IoIn;
+//
+//    TskMotor::VoAdj.Omega = 0.0f;
+//
+//    // calc turn seq
+//    float requ;
+//    osLen = MotionCalcTurn(pp.RushTurnSpeed,
+//            isLeft ? pp.Pi * .25f : -pp.Pi * .25f,
+//            pp.Mu, os, &requ);
+//    // calc pre, post and total distance
+//    float x = pp.GridSize * 0.5f - 0.414214f * requ;
+//    configASSERT(x > 0.f);
+//    float y = pp.GridSize * 0.707107f - 0.414214f * requ;
+//    configASSERT(y > 0.f);
+//    float straightPre  = isIn ? x + (isLeft ? ap.Xbcp.TurnAdj.L45iPre  : ap.Xbcp.TurnAdj.R45iPre)
+//                              : y + (isLeft ? ap.Xbcp.TurnAdj.L45oPre  : ap.Xbcp.TurnAdj.R45oPre);
+//    float straightPost = isIn ? y + (isLeft ? ap.Xbcp.TurnAdj.L45iPost : ap.Xbcp.TurnAdj.R45iPost)
+//                              : x + (isLeft ? ap.Xbcp.TurnAdj.L45oPost : ap.Xbcp.TurnAdj.R45oPost);
+//    float total = straightPre + osLen * (pp.RushTurnSpeed * pp.Ts) + straightPost;
+//
+//    // calc pre seq
+//    vsLen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, vs);
+//
+//    WaitQEnd();
+//    //update the grid info
+//    distZero = TskMotor::DistanceAcc;
+//
+//    // write pre seq
+//    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+//    // calc post seq
+//    vsLen = MotionCalcFwd(pp.RushTurnSpeed, pp.RushTurnSpeed, straightPost, vs);
+//
+//    // instantiate turn time corr
+//    IrDistCh ch = isIn ? (isLeft ? IrDistCh::FL : IrDistCh::FR)
+//                       : (isLeft ? IrDistCh::SR : IrDistCh::SL);
+//    float irdist = isIn ? pp.CenterToWall + pp.GridSize - straightPre
+//                        : irSideDistAt45oBegin - 0.5f * straightPre;
+//    float adj = act == Action::L45i ? ap.Xscp.TurnTimeAdj.L45i :
+//                act == Action::R45i ? ap.Xscp.TurnTimeAdj.R45i :
+//                act == Action::L45o ? ap.Xscp.TurnTimeAdj.L45o :
+//                act == Action::R45o ? ap.Xscp.TurnTimeAdj.R45o : 0.0f;
+//    CorrTurnTime corrTurn(ch, irdist - adj, pp.RushTurnSpeed, os, osLen, vs, vsLen);
+//
+//    if(corr && (isIn ? wall.fwd : isLeft ? wall.right : wall.left)) // wait turn time
+//    {
+//        for(i = 0; i < osLen + vsLen; i++) MotionSeqWrite(pp.RushTurnSpeed, 0.0f);
+//    }
+//    else
+//    {
+//        for(i = 0; i < osLen; i++) MotionSeqWrite(pp.RushTurnSpeed, os[i]);
+//        for(i = 0; i < vsLen; i++) MotionSeqWrite(vs[i], 0.0f);
+//    }
+//
+//    while(true)
+//    {
+//        xSemaphoreTake(TskMotor::SemActTick, portMAX_DELAY);
+//        float pos = TskMotor::DistAcc() - pos0;
+//        if(corr)
+//        {
+//            corrTurn.Tick();
+//        }
+//        report.Tick(pos, nextWall);
+//        if(MotionSeqLen() <= 4)
+//        {
+//            break;
+//        }
+//    }
+//}
+//
+//void actLR45io(Action act, bool corr = false)
+//{
+//    const float irSideDistAt45oBegin = 0.053f;
+//    using namespace TskIr;
+//    WallStatus wall, nextWall;
+//    getWall(wall);
+//
+//    bool isLeft = ((u32)act & (u32)Action::MaskDir) == (u32)Action::DirLeft;
+//    bool isIn = ((u32)act & (u32)Action::MaskIo) == (u32)Action::IoIn;
+//
+//    TskMotor::VoAdj.Omega = 0.0f;
+//
+//    // calc turn seq
+//    float requ;
+//    osLen = MotionCalcTurn(pp.RushTurnSpeed,
+//            isLeft ? pp.Pi * .25f : -pp.Pi * .25f,
+//            pp.Mu, os, &requ);
+//    // calc pre, post and total distance
+//    float x = pp.GridSize * 0.5f - 0.414214f * requ;
+//    configASSERT(x > 0.f);
+//    float y = pp.GridSize * 0.707107f - 0.414214f * requ;
+//    configASSERT(y > 0.f);
+//    float straightPre  = isIn ? x + (isLeft ? ap.Xbcp.TurnAdj.L45iPre  : ap.Xbcp.TurnAdj.R45iPre)
+//                              : y + (isLeft ? ap.Xbcp.TurnAdj.L45oPre  : ap.Xbcp.TurnAdj.R45oPre);
+//    float straightPost = isIn ? y + (isLeft ? ap.Xbcp.TurnAdj.L45iPost : ap.Xbcp.TurnAdj.R45iPost)
+//                              : x + (isLeft ? ap.Xbcp.TurnAdj.L45oPost : ap.Xbcp.TurnAdj.R45oPost);
+//    float total = straightPre + osLen * (pp.RushTurnSpeed * pp.Ts) + straightPost;
+//
+//    Reporter report(total - pp.ReportAhead);
+//
+//    // calc pre seq
+//    vsLen = MotionCalcFwd(pp.RushTurnSpeed, pp.RushTurnSpeed, straightPre, vs);
+//    WaitSeqEmpty();
+//    float pos0 = TskMotor::DistAcc();
+//    // write pre seq
+//    for(int i = 0; i < vsLen; i++) MotionSeqWrite(vs[i], 0.0f);
+//    // calc post seq
+//    vsLen = MotionCalcFwd(pp.RushTurnSpeed, pp.RushTurnSpeed, straightPost, vs);
+//
+//    // instantiate turn time corr
+//    IrDistCh ch = isIn ? (isLeft ? IrDistCh::FL : IrDistCh::FR)
+//                       : (isLeft ? IrDistCh::SR : IrDistCh::SL);
+//    float irdist = isIn ? pp.CenterToWall + pp.GridSize - straightPre
+//                        : irSideDistAt45oBegin - 0.5f * straightPre;
+//    float adj = act == Action::L45i ? ap.Xscp.TurnTimeAdj.L45i :
+//                act == Action::R45i ? ap.Xscp.TurnTimeAdj.R45i :
+//                act == Action::L45o ? ap.Xscp.TurnTimeAdj.L45o :
+//                act == Action::R45o ? ap.Xscp.TurnTimeAdj.R45o : 0.0f;
+//    CorrTurnTime corrTurn(ch, irdist - adj, pp.RushTurnSpeed, os, osLen, vs, vsLen);
+//
+//    if(corr && (isIn ? wall.fwd : isLeft ? wall.right : wall.left)) // wait turn time
+//    {
+//        for(int i = 0; i < osLen + vsLen; i++) MotionSeqWrite(pp.RushTurnSpeed, 0.0f);
+//    }
+//    else
+//    {
+//        for(int i = 0; i < osLen; i++) MotionSeqWrite(pp.RushTurnSpeed, os[i]);
+//        for(int i = 0; i < vsLen; i++) MotionSeqWrite(vs[i], 0.0f);
+//    }
+//
+//    while(true)
+//    {
+//        xSemaphoreTake(TskMotor::SemActTick, portMAX_DELAY);
+//        float pos = TskMotor::DistAcc() - pos0;
+//        if(corr)
+//        {
+//            corrTurn.Tick();
+//        }
+//        report.Tick(pos, nextWall);
+//        if(MotionSeqLen() <= 4)
+//        {
+//            break;
+//        }
+//    }
+//}
+//void actL135i(void){
+//    float requ;
+//    int i, vslen, oslen;
+//    bool rtn;
+//    TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
+//    distZero = TskMotor::DistanceAcc;
+//    oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 * 3 / 2.f, PP::Mu, o_s, &requ);
+//
+//	TskTop::SetLeds(0x0);
+//    float straightPre = (PP::GridSize - requ);
+//    float straightPost = (PP::GridSize - requ + SP.TURNLI135_POST_ADJ);
+//
+//    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
+//
+//    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+//
+//    //use the pillar info to correct
+//    while(TskMotor::DistanceAcc - distZero < straightPre)
+//    {
+//        rtn = xSemaphorePend(SemActTick, 2);
+//        configASSERT(rtn == pdPASS);
+//		IRint = TskIr::IrDists.LS;
+//		if(IMin < 0.001f) IMin = IRint;
+//		if(fabs(IRint - SP.TURNLI135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLI135_MIN_DIST)
+//		{
+//			TskTop::SetLeds(0xf);
+//			TskMotor::QMotor->Clear();
+//		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNLI135_PRE_ADJ, v_s);
+//		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+//			break;
+//		}
+//		if(IMin > IRint) IMin = IRint;
+//    }
+//    IMin = 0.f;
+//    WaitQEnd();
+//    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
+//    WaitQEnd();
+//    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
+//    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+//    WaitQEnd();
+//}
 
 void actL90r(void){
     float requ;
@@ -642,48 +644,6 @@ void actL90r(void){
 	WaitQEnd();
     for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
     WaitQEnd();
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
-}
-
-void actR90r(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, -(float)PP::PI_2, PP::Mu, o_s, &requ);
-
-	TskTop::SetLeds(0x0);
-    float straightPre = (PP::GridSize - requ);
-
-    float straightPost = (PP::GridSize - requ +SP.TURNR90R_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNR90R_MAX_DIST) < 0.005f && IMin < SP.TURNR90R_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNR90R_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
     vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
     for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
@@ -737,138 +697,6 @@ void actL180(void){
     WaitQEnd();
 }
 
-void actR180(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-
-    oslen = MotionCalcTurn(SP.T180Speed, -(float)PP::PI, SP.TR180Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize - requ);
-
-    float straightPost = (PP::GridSize - requ +SP.TURNR180_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.T180Speed, 0.01f, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    vslen = MotionCalcFwd(SP.T180Speed, SP.T180Speed, straightPre-0.01f, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNR180_MAX_DIST) < SP.ERRDist && IMin < SP.TURNR180_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-		    vslen = MotionCalcFwd(SP.T180Speed, SP.T180Speed, SP.TURNR180_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-	IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.T180Speed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.T180Speed, SP.T180Speed, straightPost-0.01f, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    vslen = MotionCalcFwd(SP.T180Speed, SP.T180Speed, 0.01f, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-//TODO about turn out
-void actL45o(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-
-	TskTop::SetLeds(0x0);
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize - requ);
-    float straightPost = (PP::GridSize - requ + SP.TURNLO45_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.LS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNLO45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNLO45_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-			vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNLO45_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-	IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-void actR45o(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-	TskTop::SetLeds(0x0);
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 / 2.f, PP::Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize - requ);
-    float straightPost = (PP::GridSize - requ + SP.TURNRO45_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNRO45_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRO45_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-			vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNRO45_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
 void actL135o(void){
     float requ;
     int i, vslen, oslen;
@@ -896,48 +724,6 @@ void actL135o(void){
 			TskTop::SetLeds(0xf);
 			TskMotor::QMotor->Clear();
 			vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNLO135_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    WaitQEnd();
-}
-
-void actR135o(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-	TskTop::SetLeds(0x0);
-    oslen = MotionCalcTurn(SP.RushSpeed, (float)-PP::PI_2 * 3.f / 2.f, PP::Mu, o_s, &requ);
-
-    float straightPre = (PP::GridSize - requ);
-    float straightPost = (PP::GridSize - requ + SP.TURNRO135_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNRO135_MAX_DIST) < SP.ERRDist && IMin < SP.TURNRO135_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-			vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNRO135_PRE_ADJ, v_s);
 		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 			break;
 		}
@@ -995,344 +781,212 @@ void actL90t(void){
     WaitQEnd();
 }
 
-void actR90t(void){
-    float requ;
-    int i, vslen, oslen;
-    bool rtn;
-    distZero = TskMotor::DistanceAcc;
-    oslen = MotionCalcTurn(SP.RushSpeed, -(float)PP::PI_2, PP::Mu, o_s, &requ);
-
-	TskTop::SetLeds(0x0);
-    float straightPre = (PP::GridSize - requ);
-
-    float straightPost = (PP::GridSize - requ +SP.TURNR90T_POST_ADJ);
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPre, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    //use the pillar info to correct
-    while(TskMotor::DistanceAcc - distZero < straightPre)
-    {
-        rtn = xSemaphorePend(SemActTick, 2);
-        configASSERT(rtn == pdPASS);
-		IRint = TskIr::IrDists.RS;
-		if(IMin < 0.001f) IMin = IRint;
-		if(fabs(IRint - SP.TURNR90T_MAX_DIST) < SP.ERRDist && IMin < SP.TURNR90T_MIN_DIST)
-		{
-			TskMotor::QMotor->Clear();
-			TskTop::SetLeds(0xf);
-		    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, SP.TURNR90T_PRE_ADJ, v_s);
-		    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-			break;
-		}
-		if(IMin > IRint) IMin = IRint;
-    }
-    IMin = 0.f;
-    WaitQEnd();
-    for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(SP.RushSpeed,o_s[i]));
-    WaitQEnd();
-
-    vslen = MotionCalcFwd(SP.RushSpeed, SP.RushSpeed, straightPost, v_s);
-    for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    WaitQEnd();
-}
-
-void actCorrStart()
+void actStart()
 {
     int i, len;
     bool rtn;
     TskMotor::OmgAdj = 0.0f;
+    reported = 0;
 
-    //update the grid info
-    distZero = TskMotor::DistanceAcc;
+    TskTop::SetLeds(0x2);
+
     GetWallInfo(&cur_wall);
 
     len = MotionCalcFwd(0.0f, PP::SearchSpeed, PP::StartAcclDist, v_s);
+
+    WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
     len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed,
     		PP::StartTotalDist - PP::StartAcclDist, v_s);
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
-	//Get wall info
-    while(TskMotor::DistanceAcc - distZero < PP::StartTotalDist - PP::GetWallDist)
-    {
+    TskTop::SetLeds(0x0);
+    while(1){
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
+
+        report(PP::StartTotalDist - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
     }
-    GetWallInfo(&nextWall);
-    rtn = xQueuePost(solve::MbAct, &nextWall, portMAX_DELAY);
-    configASSERT(rtn == pdPASS);
-    WaitQEnd();
 }
 
-unsigned int  actCorrStop()
+unsigned int  actStop(bool corr)
 {
     int i, len;
     bool rtn;
     float stopDist;
     TskMotor::OmgAdj = 0.0f;
+    reported = 0;
 
-    //update the grid info
-    distZero = TskMotor::DistanceAcc;
+    TskTop::SetLeds(0x2);
     GetWallInfo(&cur_wall);
 
     stopDist = PP::StopTotalDist-PP::StopAccDist;
     len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, stopDist, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    if(cur_wall.fwd)
-    {
-#if ENABLE_CORRECTION > 0
-        while(fabsf(0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))
-        		> PP::CenterToWall + PP::StopAccDist - CP.STOPEND_DIST_ADJ)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-
-        }
-        TskMotor::QMotor->Clear();
-#endif
-    	TskTop::SetLeds(0x07);
-        len = MotionCalcFwd(PP::SearchSpeed, 0.0f, PP::StopAccDist, v_s);
-        for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-        WaitQEnd();
-    }
-    else
-    {
-        len = MotionCalcFwd(PP::SearchSpeed, 0.0f, PP::StopAccDist, v_s);
-        for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-    }
 
     WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
+    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+
+    len = MotionCalcFwd(PP::SearchSpeed, 0.0f, PP::StopAccDist, v_s);
+    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+
+    TskTop::SetLeds(0x0);
+    while(1){
+        rtn = xSemaphorePend(SemActTick, 2);
+        configASSERT(rtn == pdPASS);
+
+        //stop action don't report wall info
+        // report(PP::StopTotalDist - PP::GetWallDist);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
+
+    if(corr){
+        TskTop::SetLeds(0x0);
+        if(cur_wall.fwd)
+        {
+            i = 0;
+            while(fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.002f)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                TskMotor::LvAdj = actFwdDistCorrByFwdIr(&cur_wall);
+                if(i > 1000) break;
+                else i++;
+            }
+            TskMotor::LvAdj = 0.0f;
+            actHDirPid->Reset();
+        }
+    }
 
     vTaskDelay(750);
     return cur_wall.msk;
 }
 
-void actCorrBack(WallStatus *wall)
+void actBack(bool corr, WallStatus *wall)
 {
 	int i, len;
 	bool rtn;
 	TskMotor::OmgAdj = 0.0f;
+    reported = 0;
 
 	float tht = wall->left? PP::PI_2 : -PP::PI_2;
 
-	TskTop::SetLeds(0x00);
+	TskTop::SetLeds(0x2);
 
 	len = MotionCalcRotate(tht, 0.5f * PP::Mu, o_s);
 
-	TskTop::SetLeds(0x0f);
+    WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
 	for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(0.f,o_s[i]));
 
-	WaitQEnd();
-    if(wall->left || wall->right)
-    {
-        while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > PP::PI / 180.f
-        		|| fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.0025f)
+    if(corr){
+        TskTop::SetLeds(0x0);
+        if(wall->left || wall->right)
         {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-            TskMotor::OmgAdj = actHeadingDirCorrByFwdIr(wall);
-			TskMotor::LvAdj = actFwdDisCorrByFwdIr(wall);
+            i = 0;
+            while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > 0.5 * PP::PI / 180.f
+                    || fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.002f)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                TskMotor::OmgAdj = actHeadingDirCorrByFwdIr(wall);
+                TskMotor::LvAdj = actFwdDistCorrByFwdIr(wall);
+                if(i > 1000) break;
+                else i++;
+            }
+            TskMotor::OmgAdj = 0.0f;
+            TskMotor::LvAdj = 0.0f;
+            actHDirPid->Reset();
         }
-        TskMotor::OmgAdj = 0.0f;
-        TskMotor::LvAdj = 0.0f;
-        actHDirPid->Reset();
     }
 
 	len = MotionCalcRotate(tht + (wall->left?CP.LRBACKANGLE_ADJ:-CP.LRBACKANGLE_ADJ), 0.5f * PP::Mu, o_s);
 	for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(0.f,o_s[i]));
 
-	WaitQEnd();
+    TskTop::SetLeds(0x0);
+    while(1){
+        rtn = xSemaphorePend(SemActTick, 2);
+        configASSERT(rtn == pdPASS);
+        // report(PP::StartTotalDist - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
 }
 
-void actCorrRestart()
+void actRestart()
 {
     int i, len;
     bool rtn;
     TskMotor::OmgAdj = 0.0f; //actHDirPid->Reset();
+    reported = 0;
 
+    TskTop::SetLeds(0x2);
     len = MotionCalcFwd(0.0f, PP::SearchSpeed, PP::RestartDist, v_s);
+
+    WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
 
     len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, CP.RESTART_DIST_ADJ, v_s);
     for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-	//Get wall info
-    while(TskMotor::DistanceAcc - distZero < PP::RestartDist - PP::GetWallDist)
-    {
+
+    TskTop::SetLeds(0x0);    
+    while(1){
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
-    }
-    GetWallInfo(&nextWall);
-    rtn = xQueuePost(solve::MbAct, &nextWall, portMAX_DELAY);
-    configASSERT(rtn == pdPASS);
 
-    WaitQEnd();
+        report(PP::RestartDist - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
 }
 
-void actCorrStopBackRestart()
+void actStopBackRestart(bool corr)
 {
     WallStatus stopWall;
-    stopWall.msk = actCorrStop();
-    //actCorrBack(&stopWall);
-    actCorrBack(&stopWall);
-    actCorrRestart();
+    stopWall.msk = actStop(corr);
+    actBack(corr, &stopWall);
+    actRestart();
 }
 
-void actCorrStopBack()
-{
-    WallStatus stopWall;
-    stopWall.msk = actCorrStop();
-    actCorrBack(&stopWall);
-}
-
-void actCorrFwd()
-{
-    int i, len;
-    bool rtn;
-    TskMotor::OmgAdj = 0.0f;
-    bool posted = 0;
-    //update the grid info
-    distZero = TskMotor::DistanceAcc;
-    GetWallInfo(&cur_wall);
-
-    len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, PP::GridSize, v_s);
-    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    if(cur_wall.left || cur_wall.right)
-    {
-    	while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRSIDE_START_DIST)
-        {
-    		TskTop::SetLeds(0x8);
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-            TskMotor::OmgAdj = actHeadingDirCorrBySideIrSide(&cur_wall);
-        }
-        TskMotor::OmgAdj = 0.0f;
-        actHDirPid->Reset();
-
-        while(TskMotor::QMotor->Len() > 1)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-            if(actFwdEndCorrBySideWallDisappear(&cur_wall,TskMotor::CurrentV,PP::SearchSpeed, TskMotor::DistanceAcc - distZero))
-            {
-            	TskTop::SetLeds(0x01);
-            	break;
-            }
-
-        }
-    	//Get wall info
-        while(TskMotor::DistanceAcc - distZero < PP::GridSize - PP::GetWallDist)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-        }
-        GetWallInfo(&nextWall);
-        rtn = xQueuePost(solve::MbAct, &nextWall, portMAX_DELAY);
-        configASSERT(rtn == pdPASS);
-    }
-
-    //TODO
-    else    // centipede
-    {
-        int lfInt = TskIr::IrInts.sl, rfInt = TskIr::IrInts.sr;
-        int lfIntLast = 0, rfIntLast = 0, lFallCnt = 0, rFallCnt = 0;
-        float lfMaxDist = -1.0f, rfMaxDist = -1.0f;
-        while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BGNSTAT_POS)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-        }
-        while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BEGIN_POS)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-            lfInt = TskIr::IrInts.sl;
-            rfInt = TskIr::IrInts.sr;
-            if(lfMaxDist < 0.0f)
-            {
-                if(lfInt < lfIntLast - 2)
-                {
-                    if(++lFallCnt == 2)
-                        lfMaxDist = TskMotor::DistanceAcc - distZero;
-                }
-                else lFallCnt = 0;
-            }
-            if(rfMaxDist < 0.0f)
-            {
-                if(rfInt < rfIntLast - 2)
-                {
-                    if(++rFallCnt == 2)
-                        rfMaxDist = TskMotor::DistanceAcc - distZero;
-                }
-                else rFallCnt = 0;
-            }
-            lfIntLast = lfInt;
-            rfIntLast = rfInt;
-        }
-        float angErr;
-        if(lfMaxDist > 0.0f && rfMaxDist > 0.0f)
-        {
-            angErr = (lfMaxDist - rfMaxDist) * (PP::IrSizeAngle
-                    / (CP.HEADING_BY_SIRFWD_END_POS - CP.HEADING_BY_SIRFWD_BEGIN_POS));
-        }
-        else
-        {
-            angErr = 0.0f;
-        }
-        float omgMax = angErr * (CENTIPEDE_CORR_GAIN * 2.0f
-                / ((CP.HEADING_BY_SIRFWD_END_POS - CP.HEADING_BY_SIRFWD_BEGIN_POS) / PP::SearchSpeed));
-
-        while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_END_POS)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-        	TskMotor::OmgAdj = -omgMax;
-        }
-        TskMotor::OmgAdj = 0.0f;
-//        actHDirPid->Reset();
-
-        while(TskMotor::DistanceAcc - distZero < PP::GridSize || TskMotor::QMotor->Len() > 0)
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-        	TskMotor::OmgAdj = omgMax;
-
-        	//Get wall info
-        	if(TskMotor::DistanceAcc - distZero >= PP::GridSize - PP::GetWallDist)
-        	{
-        		if(!posted)
-        		{
-					GetWallInfo(&nextWall);
-					rtn = xQueuePost(solve::MbAct, &nextWall, portMAX_DELAY);
-			        configASSERT(rtn == pdPASS);
-					posted = 1;
-        		}
-        	}
-        }
-
-        TskMotor::OmgAdj = 0.0f;
-        actHDirPid->Reset();
-    }
-
-    WaitQEnd();
-}
-
-void actCorrLR90(Act::ActType act)
+void actLR90(bool corr, Act::ActType act)
 {
     float requ;
     bool rtn;
     int i, vslen, oslen;
+    
+    reported = 0;
 
-    //update the grid info
-    distZero = TskMotor::DistanceAcc;
+    TskTop::SetLeds(0x2);
     GetWallInfo(&cur_wall);
-    Info[0] = distZero;
+
     oslen = MotionCalcTurn(PP::SearchSpeed, act == Act::L90 ?
-    		(float)PP::PI_2 : -(float)PP::PI_2, PP::Mu, o_s, &requ);
+            (float)PP::PI_2 : -(float)PP::PI_2, PP::Mu, o_s, &requ);
 
     float straightPre = (PP::GridSize / 2.f - requ)
             + (act == Act::L90 ? CP.TURNL90_PRE_ADJ : CP.TURNR90_PRE_ADJ);
@@ -1340,44 +994,193 @@ void actCorrLR90(Act::ActType act)
     float straightPost = (PP::GridSize / 2.f - requ)
             + (act == Act::L90 ?  CP.TURNL90_POST_ADJ : CP.TURNR90_POST_ADJ);
 
-	TskTop::SetLeds(0x00);
     vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPre, v_s);
+    
+    WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
     for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-
-    if(cur_wall.fwd)
+    if(corr)
     {
-        TskTop::SetLeds(0x01);
-    	// TODO:...
-        while((act == Act::L90 ?TskIr::IrDists.FLns : TskIr::IrDists.FRns) >
-        		requ + PP::CenterToWall - (act == Act::L90 ? CP.TURNLWAIT_DIST_ADJ : CP.TURNRWAIT_DIST_ADJ))
-        {
-            rtn = xSemaphorePend(SemActTick, 2);
-            configASSERT(rtn == pdPASS);
-
-         	TskTop::SetLeds(0x02);
-        }
-
-        TskMotor::QMotor->Clear();
+        TskTop::SetLeds(0x0);
+        actLRDistCorrByFwdIr(act, requ + PP::CenterToWall - (act == Act::L90 ? CP.TURNLWAIT_DIST_ADJ : CP.TURNRWAIT_DIST_ADJ));
     }
-
     for(i = 0; i < oslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(PP::SearchSpeed,o_s[i]));
 
     vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPost, v_s);
     for(i = 0; i < vslen; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
-	//Get wall info
-    while(TskMotor::DistanceAcc - distZero < PP::StartTotalDist - PP::GetWallDist)
-    {
+   
+    TskTop::SetLeds(0x0);    
+    while(1){
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
-    }
-    GetWallInfo(&nextWall);
-    rtn = xQueuePost(solve::MbAct, &nextWall, portMAX_DELAY);
-    configASSERT(rtn == pdPASS);
 
-    WaitQEnd();
-    TskTop::SetLeds(0x00);
+        report(PP::GridSize - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
 }
 
+void actFwd(bool corr)
+{
+    int i, len;
+    bool rtn;
+    TskMotor::OmgAdj = 0.0f;
+    reported = 0;
+
+    float pos = PP::GridSize;
+
+    TskTop::SetLeds(0x2);
+    //update the grid info
+    GetWallInfo(&cur_wall);
+
+    len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, PP::GridSize, v_s);
+
+    WaitQEnd();
+    //update the grid info
+    distZero = TskMotor::DistanceAcc;
+
+    for(i = 0; i < len; i++) TskMotor::QMotor->En(TskMotor::VelOmega(v_s[i],0.f));
+
+    if(corr)
+    {
+        TskTop::SetLeds(0x0);
+        if(cur_wall.left || cur_wall.right)
+        {
+            TskTop::SetLeds(0x0);
+            while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRSIDE_START_DIST)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                TskMotor::OmgAdj = actHeadingDirCorrBySideIrSide(&cur_wall);
+            }
+            TskMotor::OmgAdj = 0.0f;
+            actHDirPid->Reset();
+
+            while(TskMotor::QMotor->Len() > 1)
+            {
+                TskTop::SetLeds(0x0);
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                if(actFwdEndCorrBySideWallDisappear(&cur_wall,TskMotor::CurrentV,PP::SearchSpeed, &pos))
+                {
+                    TskTop::SetLeds(0x0);
+
+                    break;
+                }
+
+            }
+
+        }
+
+        //TODO
+        else    // centipede
+        {
+            TskTop::SetLeds(0x0);
+            float lDis = TskIr::IrDists.LS;
+            float rDis = TskIr::IrDists.RS;
+            float dlMin = 1e38f, drMin = 1e38f;
+            float lPos = -1.0f, rPos = -1.0f;
+            while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BGNSTAT_POS)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+            }
+            while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_BEGIN_POS)
+            {
+                TskTop::SetLeds(0x2);
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                if(lDis < dlMin) dlMin = lDis;
+                if(rDis < drMin) drMin = rDis;
+                if(lPos < 0.f)  // lpos not updated
+                {
+                    if(dlMin < PP::GridSize && lDis > dlMin + 0.008f)
+                    {
+                        lPos = TskMotor::DistanceAcc - distZero;
+                        # if 0
+                            sprintf(dbgStr, "dlMin:%6.3f, lDis:%6.3f\r\n", dlMin, lDis);
+                            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                            configASSERT(rtn == pdPASS);
+                        #endif
+                    }
+
+                }
+                if(rPos < 0.f)  // rpos not updated
+                {
+                    if(drMin < PP::GridSize && rDis > drMin + 0.005f)
+                    {
+                        rPos = TskMotor::DistanceAcc - distZero;
+                        # if 0
+                            sprintf(dbgStr, "drMin:%6.3f rDis:%6.3f\r\n", drMin, rDis);
+                            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                            configASSERT(rtn == pdPASS);
+                        #endif
+                    }
+
+                }
+                lDis = TskIr::IrDists.LS;
+                rDis = TskIr::IrDists.RS;
+            }
+            float angErr;
+            if(lPos > 0.0f && rPos > 0.0f)
+            {
+                TskTop::SetLeds(0x4);
+                angErr = (lPos - rPos) * (PP::IrSizeAngle
+                        / (CP.HEADING_BY_SIRFWD_END_POS - CP.HEADING_BY_SIRFWD_BEGIN_POS));
+            }
+            else
+            {
+                angErr = 0.0f;
+            }
+            float omgMax = angErr * (CP.CENTIPEDE_CORR_GAIN * 2.0f
+                    / ((CP.HEADING_BY_SIRFWD_END_POS - CP.HEADING_BY_SIRFWD_BEGIN_POS) / PP::SearchSpeed));
+            # if 1
+                    sprintf(dbgStr, "omgMax:%6.3f lPos:%6.3f rPos:%6.3f\r\n", omgMax, lPos, rPos);
+                    rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+                    configASSERT(rtn == pdPASS);
+            #endif
+            while(TskMotor::DistanceAcc - distZero < CP.HEADING_BY_SIRFWD_END_POS)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                TskMotor::OmgAdj = -omgMax;
+            }
+
+            TskMotor::OmgAdj = 0.0f;
+    //        actHDirPid->Reset();
+
+            while(TskMotor::DistanceAcc - distZero < PP::GridSize || TskMotor::QMotor->Len() > 2)
+            {
+                rtn = xSemaphorePend(SemActTick, 2);
+                configASSERT(rtn == pdPASS);
+                TskMotor::OmgAdj = omgMax;
+
+                report(PP::GridSize - PP::GetWallDist, distZero);
+            }
+
+            TskMotor::OmgAdj = 0.0f;
+            actHDirPid->Reset();
+        }
+    }
+
+    TskTop::SetLeds(0x0);
+    while(1){
+        rtn = xSemaphorePend(SemActTick, 2);
+        configASSERT(rtn == pdPASS);
+
+        report(PP::GridSize - PP::GetWallDist, distZero);
+
+        if(MotionSeqLen() <= 4)
+        {
+            break;
+        }
+    }
+}
 
 Act::ActType actCurrAct;
 
@@ -1388,14 +1191,10 @@ void task(void *pvParameters)
     actCurrAct = Act::Null;
     Act::ActType act;
     bool flag,rtn;
-//    actCorrsInfo.fwdEnd = 0;
-//    actCorrsInfo.irSideDist = 0.0f;
-//    actCorrsInfo.turnWait = 0;
-//    actCurrWall.msk = 0x6;
 
     actHDirPid = new Pid(
             SIDEIR_CORR_PID_P, SIDEIR_CORR_PID_I, SIDEIR_CORR_PID_D,
-            SIDEIR_CORR_PID_N, PP::Ts, -3142.0f, 3142.0f);
+            SIDEIR_CORR_PID_N, PP::Ts, -120.0f, 120.0f);
 
     while(true)
     {
@@ -1412,107 +1211,93 @@ void task(void *pvParameters)
             case Act::Null:
                 break;
             case Act::Start:
-            	if(flag)
-            		actCorrStart();
-            	else actStart();
+                actStart();
                 break;
             case Act::Stop:
-            	if(flag)
-            		stopWall.msk = actCorrStop();
-            	else stopWall.msk = actStop();
+            	stopWall.msk = actStop(flag);
                 break;
             case Act::Back:
-            	if(flag)
-            		actCorrBack(&stopWall);
-            	else actBack();
+            	actBack(flag, &stopWall);
                 break;
-            case Act::TBackR:
-            	if(flag)
-            		actCorrStopBackRestart();
-            	else actTurnBack();
-            	break;
-            case Act::TBack:
-            	if(flag)
-            		actCorrStopBack();
-            	else actTurnBack();
-            	break;
+             case Act::TBackR:
+                 actStopBackRestart(flag);
+             	break;
+            // case Act::TBack:
+            // 	if(flag)
+            // 		actCorrStopBack();
+            // 	else actTurnBack();
+            // 	break;
             case Act::Restart:
-            	if(flag)
-            		actCorrRestart();
-            	else actRestart();
+            	actRestart();
                 break;
             case Act::Fwd:
-            	if(flag)
-            		actCorrFwd();
-            	else actFwd();
+            	actFwd(flag);
                 break;
             case Act::L90:
             case Act::R90:
-            	if(flag)
-            		actCorrLR90(actCurrAct);
-            	else actLR90(actCurrAct);
+                actLR90(flag, actCurrAct);
                 break;
-            case Act::CRush:
-            	actCRush();
-                break;
-            case Act::TRush:
-            	actTRush();
-                break;
-            case Act::RushIn:
-            	actRushIn();
-                break;
-            case Act::RushOut:
-            	actRushOut();
-                break;
-            case Act::L45i:
-            	actL45i();
-                break;
-            case Act::L45o:
-            	actL45o();
-                break;
-            case Act::R45i:
-            	actR45i();
-                break;
-            case Act::R45o:
-            	actR45o();
-                break;
-            case Act::L90r:
-            	actL90r();
-                break;
-            case Act::R90r:
-            	actR90r();
-                break;
-            case Act::L90t:
-            	actL90t();
-                break;
-            case Act::R90t:
-            	actR90t();
-                break;
-            case Act::L135i:
-            	actL135i();
-                break;
-            case Act::L135o:
-            	actL135o();
-                break;
-            case Act::R135i:
-            	actR135i();
-                break;
-            case Act::R135o:
-            	actR135o();
-                break;
-            case Act::L180:
-            	actL180();
-                break;
-            case Act::R180:
-            	actR180();
-                break;
+//            case Act::CRush:
+//            	actCRush();
+//                break;
+//            case Act::TRush:
+//            	actTRush();
+//                break;
+//            case Act::RushIn:
+//            	actRushIn();
+//                break;
+//            case Act::RushOut:
+//            	actRushOut();
+//                break;
+//            case Act::L45i:
+//            	actL45i();
+//                break;
+//            case Act::L45o:
+//            	actL45o();
+//                break;
+//            case Act::R45i:
+//            	actR45i();
+//                break;
+//            case Act::R45o:
+//            	actR45o();
+//                break;
+//            case Act::L90r:
+//            	actL90r();
+//                break;
+//            case Act::R90r:
+//            	actR90r();
+//                break;
+//            case Act::L90t:
+//            	actL90t();
+//                break;
+//            case Act::R90t:
+//            	actR90t();
+//                break;
+//            case Act::L135i:
+//            	actL135i();
+//                break;
+//            case Act::L135o:
+//            	actL135o();
+//                break;
+//            case Act::R135i:
+//            	actR135i();
+//                break;
+//            case Act::R135o:
+//            	actR135o();
+//                break;
+//            case Act::L180:
+//            	actL180();
+//                break;
+//            case Act::R180:
+//            	actR180();
+//                break;
             default:
                 break;
             }
 
         }
 		end_msg = ActMsg::Action_ed;
-		rtn = xQueuePost(TskTop::MbCmd, &end_msg, portMAX_DELAY);
+		rtn = xQueuePost(TskTop::MbCmd, &end_msg, (TickType_t)0);
         configASSERT(rtn == pdPASS);
     }
 }

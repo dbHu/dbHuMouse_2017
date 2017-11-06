@@ -31,6 +31,8 @@ TskIr/TskIr.obj: ../TskIr/../TskTop/DbgUart.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/WheelEnc.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/../physparams.h
+TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/TskMotor.h
+TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/PinConfig/pinout.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/task.h
 TskIr/TskIr.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/list.h
@@ -66,6 +68,8 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/WheelEnc.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/../physparams.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/TskMotor.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/PinConfig/pinout.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/task.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/list.h: 

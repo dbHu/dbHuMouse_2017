@@ -89,7 +89,7 @@ const float RestartDist =(GridSize / 2.0f);
 //================ end geometry infos
 
 //================ the dist to get wall info
-const float GetWallDist =  0.005f;
+const float GetWallDist =  0.01f;
 //================
 //================ action speeds & etc.
 const int SeqArrayLen    = 512;
@@ -138,7 +138,7 @@ struct PidParam
          avPidN = 0.f;
 
          posCoff = 120.f;
-         velCoff = 6.0f;
+         velCoff = 6.f;
      };
 };
 
@@ -260,8 +260,8 @@ struct RushParam
 
     RushParam()
     {
-        RushSpeed    = 0.6f;
-        T180Speed    = 0.7f;
+        RushSpeed = 0.4f;
+        T180Speed = 0.4f;
         TR180Mu  = 0.53f;
         TL180Mu  = 0.54f;
 
@@ -406,6 +406,7 @@ struct SeachParam
    // params defines distances added at fwd end corr occur;
     float LFWDEND_DIST_W2NW;
     float RFWDEND_DIST_W2NW;
+    float CENTIPEDE_CORR_GAIN;
 
    //#define HEADING_BY_SIRFWD_B2EHALF_DIST ((HEADING_BY_SIRFWD_END_POS - HEADING_BY_SIRFWD_BEGIN_POS) * 0.5f);
    // left & right turn straight segment when no fwd wall for turnwait;
@@ -443,34 +444,35 @@ struct SeachParam
 
         // params defines how far will the side ir corr for heading dir effects during diff act
         // after these fwd end corr starts
-         HEADING_BY_SIRSIDE_START_DIST = 0.030f;
+         HEADING_BY_SIRSIDE_START_DIST = 0.020f;
 
         // 2 params defines segs where side ir corr for heading dir effects during centipede
-         HEADING_BY_SIRFWD_BGNSTAT_POS = 0.010f;
-         HEADING_BY_SIRFWD_BEGIN_POS   = 0.120f;
-         HEADING_BY_SIRFWD_END_POS= (PP::GridSize * 0.667 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
+         HEADING_BY_SIRFWD_BGNSTAT_POS = 0.015f;
+         HEADING_BY_SIRFWD_BEGIN_POS   = 0.060f;
+         HEADING_BY_SIRFWD_END_POS = (PP::GridSize * 0.667 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
         // params defines distances added at fwd end corr occur
-         LFWDEND_DIST_W2NW= 0.01f;
-         RFWDEND_DIST_W2NW= 0.01f;
+         LFWDEND_DIST_W2NW= 0.030f;
+         RFWDEND_DIST_W2NW= 0.038f;
+         CENTIPEDE_CORR_GAIN = 0.1f;
 
         // left & right turn straight segment when no fwd wall for turnwait
         // abs of these must be less than GeoFwd
          TURNL90_PRE_ADJ  = -0.001f;
-         TURNR90_PRE_ADJ  = 0.001f;
+         TURNR90_PRE_ADJ  = 0.003f;
          TURNL90_POST_ADJ = -0.001f;
-         TURNR90_POST_ADJ = -0.003f;
+         TURNR90_POST_ADJ = -0.005f;
 
         // turn wait dist adjustment
          TURNLWAIT_DIST_ADJ    = -0.002f;    // more positive to turn later
-         TURNRWAIT_DIST_ADJ    = 0.001f;    // more positive to turn later
+         TURNRWAIT_DIST_ADJ    = -0.002f;    // more positive to turn later
 
-         RESTART_DIST_ADJ = 0.013f;
+         RESTART_DIST_ADJ = 0.002f;
 
-         STOPEND_DIST_ADJ = -0.001f;
+         STOPEND_DIST_ADJ = 0.001f;
 
-         FWDDISADJ = -0.002f;
-         LRBACKANGLE_ADJ  = -2.f * PP::PI / 180.f; //
-         FLRYAWERROR = 2.f * PP::PI / 180.f;
+         FWDDISADJ = 0.002f;
+         LRBACKANGLE_ADJ  = 2.f * PP::PI / 180.f; //
+         FLRYAWERROR = 0.057f * PP::PI / 180.f;
          LBACKCENTER_ADJ  = 10.f;   //
          RBACKCENTER_ADJ  = 10.f;   //
     };
