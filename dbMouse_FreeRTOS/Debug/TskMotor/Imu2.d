@@ -16,7 +16,6 @@ TskMotor/Imu2.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.
 TskMotor/Imu2.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/i2c.h
 TskMotor/Imu2.obj: C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/interrupt.h
 TskMotor/Imu2.obj: ../TskMotor/Imu.h
-TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/physparams.h
 TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/DbgUart.h
 TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/FreeRTOS.h
 TskMotor/Imu2.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include/stddef.h
@@ -30,6 +29,8 @@ TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeR
 TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h
 TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/task.h
 TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/list.h
+TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/physparams.h
+TskMotor/Imu2.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h
 
 ../TskMotor/Imu2.cpp: 
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include/stdint.h: 
@@ -47,7 +48,6 @@ C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/pin
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/i2c.h: 
 C:/ti/tirtos_tivac_2_16_01_14/products/TivaWare_C_Series-2.1.1.71b/driverlib/interrupt.h: 
 ../TskMotor/Imu.h: 
-D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/physparams.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskTop/DbgUart.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/FreeRTOS.h: 
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include/stddef.h: 
@@ -61,3 +61,5 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/mpu_wra
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/queue.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/task.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/list.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/physparams.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/action.h: 

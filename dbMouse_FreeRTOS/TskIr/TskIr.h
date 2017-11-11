@@ -182,8 +182,7 @@ extern volatile IrDist IrDists;
 extern volatile IrDistBinThs IrBinThs;
 extern volatile IrDistBins IrBins;
 extern volatile IrHeadingYaw IrYaw;
-
-extern volatile float SideWallDisPos;
+extern volatile float SideLWallDisPos, SideRWallDisPos;
 extern QueueHandle_t MbCmd;
 
 extern const char *IrChNames[]; // = {"FLns", "FLws", "FRns", "FRws", "LS  ", "LF  ", "RS  ", "RF  "};

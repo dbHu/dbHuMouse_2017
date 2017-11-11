@@ -94,10 +94,14 @@ const float GetWallDist =  0.01f;
 //================ action speeds & etc.
 const int SeqArrayLen    = 512;
 const float SearchSpeed    = 0.3f;	//0.36f comment @20150916 17:18
+const int TicksInOneAction = 300;   //9cm @ 0.3m/s 
 //================
 
-const float GyroUnitCompensation    = 0.996f;  // reduce to turn/rotate more
-const float AcclUnitCompensation    = 1.015f;
+//distance for rush action
+const float RushInAcclDist = (PP::GridSize / 2.f - PP::WallThick / 2.0f - PP::TailBack - 0.001f);
+const float RushStopAcclDist =  0.017f;
+const float RushStopBackDist =  -0.017f;
+const float RushDiagDist = PP::GridSize * 0.707f;
 };
 
 
@@ -144,241 +148,163 @@ struct PidParam
 
 struct RushParam
 {
-    float RushSpeed;
-    float T180Speed;
+    float RushTurnSpeed;
+    float RushDiagSpeed;
+    float BackSpeed;
+    float RushMu;
     float TR180Mu ;
     float TL180Mu ;
+
     //distance for rush action;
-    float RushInAcclDistDbg;
     float RushInAcclDist;
-    float RushOutAcclDistDbg;
-    float RushOutAcclDist;
-    //the wait distance limit;
-    float ERRDist;
-    //TRush;
-    float TRushDist;
-    float TRushComDist ;
-    //6.2cm;
-    float TRushL_MAX_DIST;
-    float TRushL_MIN_DIST;
-    //6cm;
-    float TRushR_MAX_DIST  ;
-    float TRushR_MIN_DIST  ;
+    float RushStopAcclDist;
+    float RushBackAcclDist;
+
+    float RushDiagDist;
+
+    //fwd distance correction;
+    float ORushEndLDist;
+    float ORushEndRDist;
+    float DRushEndLDist;
+    float DRushEndRDist;
+
     // 45 degree left & right turn in straight segment;
     float TURNLI45_PRE_ADJ ;
     float TURNRI45_PRE_ADJ ;
     float TURNLI45_POST_ADJ;
     float TURNRI45_POST_ADJ;
-    //the value about deciding the turn;
-    //leave the grid top 2cm;
-    float TURNLI45_MAX_DIST  ;
-    float TURNLI45_MIN_DIST  ;
-    //leave the grid top 2cm;
-    float TURNRI45_MAX_DIST  ;
-    float TURNRI45_MIN_DIST  ;
 
-    //45 degree left & right turn out straight segment
-     float TURNLO45_PRE_ADJ;
-     float TURNRO45_PRE_ADJ;
-     float TURNLO45_POST_ADJ;
-     float TURNRO45_POST_ADJ;
-    //6.2cm
-     float TURNLO45_MAX_DIST;
-     float TURNLO45_MIN_DIST;
-    //6cm
-     float TURNRO45_MAX_DIST;
-     float TURNRO45_MIN_DIST;
+    float TURNLO45_PRE_ADJ;
+    float TURNRO45_PRE_ADJ;
+    float TURNLO45_POST_ADJ;
+    float TURNRO45_POST_ADJ;
+
+    //the value about deciding the turn;
+    float TURNLI45TT_ADJ;
+    float TURNRI45TT_ADJ;
+    float TURNLO45TT_ADJ;
+    float TURNRO45TT_ADJ;
 
     // 90 degree left & right turn in straight segment(90r);
-    float TURNL90R_PRE_ADJ;
-    float TURNR90R_PRE_ADJ;
-    float TURNL90R_POST_ADJ;
-    float TURNR90R_POST_ADJ;
+    float TURNLO90_PRE_ADJ;
+    float TURNRO90_PRE_ADJ;
+    float TURNLO90_POST_ADJ;
+    float TURNRO90_POST_ADJ;
+
+    // 90 degree left & right turn in straight segment(90t);
+    float TURNLD90_PRE_ADJ;
+    float TURNRD90_PRE_ADJ;
+    float TURNLD90_POST_ADJ;
+    float TURNRD90_POST_ADJ;
 
     //the value about deciding the turn;
-    //leave the grid top 2cm;
-    float TURNL90R_MAX_DIST;
-    float TURNL90R_MIN_DIST;
-   //leave the grid top 2cm;
-    float TURNR90R_MAX_DIST;
-    float TURNR90R_MIN_DIST;
+    float TURNLO90TT_ADJ;
+    float TURNRO90TT_ADJ;
+    float TURNLD90TT_ADJ;
+    float TURNRD90TT_ADJ;
 
-   // 90 degree left & right turn in straight segment(90t);
-    float TURNL90T_PRE_ADJ;
-    float TURNR90T_PRE_ADJ;
-    float TURNL90T_POST_ADJ;
-    float TURNR90T_POST_ADJ;
-
-   //TODO;
-   //the value about deciding the turn;
-   //leave the grid top 2cm;
-    float TURNL90T_MAX_DIST;
-    float TURNL90T_MIN_DIST;
-   //leave the grid top 2cm;
-    float TURNR90T_MAX_DIST;
-    float TURNR90T_MIN_DIST;
-
-   // 135 degree left & right turn in straight segment;
+    // 135 degree left & right turn in straight segment;
     float TURNLI135_PRE_ADJ;
     float TURNRI135_PRE_ADJ;
     float TURNLI135_POST_ADJ;
     float TURNRI135_POST_ADJ;
-   //the value about deciding the turn;
-   //leave the grid top 2cm;
-    float TURNLI135_MAX_DIST;
-    float TURNLI135_MIN_DIST;
-   //leave the grid top 2cm;
-    float TURNRI135_MAX_DIST;
-    float TURNRI135_MIN_DIST;
 
-   //135 degree left & right turn out straight segment;
+    //135 degree left & right turn out straight segment;
     float TURNLO135_PRE_ADJ;
     float TURNRO135_PRE_ADJ;
     float TURNLO135_POST_ADJ;
     float TURNRO135_POST_ADJ;
 
-   //the value about deciding the turn;
-   //6.2cm;
-    float TURNLO135_MAX_DIST;
-    float TURNLO135_MIN_DIST;
-   //6cm;
-    float TURNRO135_MAX_DIST;
-    float TURNRO135_MIN_DIST;
+     //the value about deciding the turn;
+    float TURNLI135TT_ADJ;
+    float TURNRI135TT_ADJ;
+    float TURNLO135TT_ADJ;
+    float TURNRO135TT_ADJ;
 
    // 180 degree left & right turn in straight segment;
     float TURNL180_PRE_ADJ;
     float TURNR180_PRE_ADJ;
     float TURNL180_POST_ADJ;
     float TURNR180_POST_ADJ;
-   //the value about deciding the turn;
-   //leave the grid top 2cm;
-    float TURNL180_MAX_DIST;
-    float TURNL180_MIN_DIST;
-   //leave the grid top 2cm;
-    float TURNR180_MAX_DIST;
-    float TURNR180_MIN_DIST;
+
+    //the value about deciding the turn;
+    float TURNL180TT_ADJ;
+    float TURNR180TT_ADJ;
 
     RushParam()
     {
-        RushSpeed = 0.4f;
-        T180Speed = 0.4f;
-        TR180Mu  = 0.53f;
-        TL180Mu  = 0.54f;
+        RushTurnSpeed = 0.42f;
+        BackSpeed = -0.1f;
+        RushDiagSpeed = 1.f;
+        RushMu  = 0.6f;
+        TR180Mu = 0.45f;
+        TL180Mu = 0.46f;
 
-       //distance for rush action
-        RushInAcclDistDbg =  PP::GridSize * 0.707f;
-        RushInAcclDist = (PP::GridSize / 2.f - PP::WallThick / 2.0f - PP::TailBack);
-        RushOutAcclDistDbg =  PP::GridSize * 0.707f;
-        RushOutAcclDist = 0.05f;
+        ORushEndLDist = 0.f;
+        ORushEndRDist = 0.f;
+        DRushEndLDist = 0.f;
+        DRushEndRDist = 0.f;
 
-       //the wait distance limit
-        ERRDist = 0.01f;
-       //TRush
-        TRushDist        = PP::GridSize * 0.707f;
-        TRushComDist         = PP::GridSize * 0.707f - 0.018f;
+       // 45 degree left & right turn in or out straight segment
+        TURNLI45_PRE_ADJ  = 0.f;
+        TURNRI45_PRE_ADJ  = 0.001f;
+        TURNLI45_POST_ADJ = -0.001f;
+        TURNRI45_POST_ADJ = -0.002f;
+        TURNLO45_PRE_ADJ  = 0.002f;
+        TURNRO45_PRE_ADJ  = 0.f;
+        TURNLO45_POST_ADJ = 0.f;
+        TURNRO45_POST_ADJ = 0.f;
 
-       //6.2cm
-        TRushL_MAX_DIST      = 0.14f;
-        TRushL_MIN_DIST      = 0.115f;
-       //6cm
-        TRushR_MAX_DIST   = 0.155f;
-        TRushR_MIN_DIST   = 0.115f;
+        //the value about deciding the turn;
+        TURNLI45TT_ADJ  = 0.01f;
+        TURNRI45TT_ADJ  = 0.012f;
+        TURNLO45TT_ADJ  = 0.035f;
+        TURNRO45TT_ADJ  = 0.035f;
 
-       // 45 degree left & right turn in straight segment
-        TURNLI45_PRE_ADJ  = 0.03f;
-        TURNRI45_PRE_ADJ  = 0.025f;
-        TURNLI45_POST_ADJ = 0.02f;
-        TURNRI45_POST_ADJ = 0.02f;
-       //the value about deciding the turn
+       // 90 degree left & right turn in straight segment(O90)
+        TURNLO90_PRE_ADJ  = -0.001f;
+        TURNRO90_PRE_ADJ  = 0.001f;
+        TURNLO90_POST_ADJ  = 0.001f;
+        TURNRO90_POST_ADJ  = 0.001f;
 
-       //leave the grid top 2cm
-        TURNLI45_MAX_DIST   = 0.11f;
-        TURNLI45_MIN_DIST   = 0.115f;
-       //leave the grid top 2cm
-        TURNRI45_MAX_DIST   = 0.14f;
-        TURNRI45_MIN_DIST   = 0.115f;
+       // 90 degree left & right turn in straight segment(D90)
+        TURNLD90_PRE_ADJ  = 0.f;
+        TURNRD90_PRE_ADJ  = 0.002f;
+        TURNLD90_POST_ADJ  = 0.f;
+        TURNRD90_POST_ADJ  = 0.f;
 
-       //45 degree left & right turn out straight segment
-        TURNLO45_PRE_ADJ  = 0.06f;
-        TURNRO45_PRE_ADJ  = 0.065f;
-        TURNLO45_POST_ADJ = -0.025f;
-        TURNRO45_POST_ADJ = -0.03f;
-       //6.2cm
-        TURNLO45_MAX_DIST = 0.14f;
-        TURNLO45_MIN_DIST = 0.14f;
-       //6cm
-        TURNRO45_MAX_DIST = 0.155f;
-        TURNRO45_MIN_DIST = 0.14f;
-
-
-       // 90 degree left & right turn in straight segment(90r)
-        TURNL90R_PRE_ADJ  = 0.06f;
-        TURNR90R_PRE_ADJ  = 0.079f;
-        TURNL90R_POST_ADJ = 0.016f;
-        TURNR90R_POST_ADJ = 0.017f;
-
-       //the value about deciding the turn
-       //leave the grid top 2cm
-        TURNL90R_MAX_DIST = 0.11f;
-        TURNL90R_MIN_DIST = 0.09f;
-       //leave the grid top 2cm
-        TURNR90R_MAX_DIST = 0.14f;
-        TURNR90R_MIN_DIST = 0.115f;
-
-       // 90 degree left & right turn in straight segment(90t)
-        TURNL90T_PRE_ADJ  = 0.032f;
-        TURNR90T_PRE_ADJ  = 0.045f;
-        TURNL90T_POST_ADJ = -0.028f;
-        TURNR90T_POST_ADJ = -0.025f;
-
-       //TODO
-       //the value about deciding the turn
-       //leave the grid top 2cm
-        TURNL90T_MAX_DIST = 0.11f;
-        TURNL90T_MIN_DIST = 0.09f;
-       //leave the grid top 2cm
-        TURNR90T_MAX_DIST = 0.14f;
-        TURNR90T_MIN_DIST = 0.115f;
+        //the value about deciding the turn;
+        TURNLO90TT_ADJ  = 0.024f;
+        TURNRO90TT_ADJ  = 0.037f;
+        TURNLD90TT_ADJ  = 0.015f;
+        TURNRD90TT_ADJ  = 0.015f;
 
        // 135 degree left & right turn in straight segment
-        TURNLI135_PRE_ADJ  = 0.10f;
-        TURNRI135_PRE_ADJ  = 0.10f;
-        TURNLI135_POST_ADJ = 0.005f;
-        TURNRI135_POST_ADJ = 0.03f;
-       //the value about deciding the turn
-       //leave the grid top 2cm
-        TURNLI135_MAX_DIST = 0.11f;
-        TURNLI135_MIN_DIST = 0.11f;
-       //leave the grid top 2cm
-        TURNRI135_MAX_DIST = 0.14f;
-        TURNRI135_MIN_DIST = 0.115f;
+        TURNLI135_PRE_ADJ  = -0.001f;
+        TURNRI135_PRE_ADJ  = 0.001f;
+        TURNLI135_POST_ADJ = 0.002f;
+        TURNRI135_POST_ADJ = 0.004f;
 
        //135 degree left & right turn out straight segment
-        TURNLO135_PRE_ADJ  = 0.08f;
-        TURNRO135_PRE_ADJ  = 0.11f;
-        TURNLO135_POST_ADJ = 0.01f;
-        TURNRO135_POST_ADJ = 0.048f;
+        TURNLO135_PRE_ADJ  = 0.004f;
+        TURNRO135_PRE_ADJ  = 0.004f;
+        TURNLO135_POST_ADJ = 0.002f;
+        TURNRO135_POST_ADJ = 0.002f;
 
-       //the value about deciding the turn
-       //6.2cm
-        TURNLO135_MAX_DIST = 0.14f;
-        TURNLO135_MIN_DIST = 0.10f;
-       //6cm
-        TURNRO135_MAX_DIST = 0.155f;
-        TURNRO135_MIN_DIST = 0.10f;
+        //the value about deciding the turn;
+        TURNLI135TT_ADJ  = 0.092f;
+        TURNRI135TT_ADJ  = 0.09f;
+        TURNLO135TT_ADJ  = 0.037f;
+        TURNRO135TT_ADJ  = 0.037f;
 
        // 180 degree left & right turn in straight segment
-        TURNL180_PRE_ADJ  = 0.045f;
-        TURNR180_PRE_ADJ  = 0.06f;
-        TURNL180_POST_ADJ = 0.02f;
-        TURNR180_POST_ADJ = 0.022f;
-       //the value about deciding the turn
-       //leave the grid top 2cm
-        TURNL180_MAX_DIST = 0.11f;
-        TURNL180_MIN_DIST = 0.09f;
-       //leave the grid top 2cm
-        TURNR180_MAX_DIST = 0.14f;
-        TURNR180_MIN_DIST = 0.115f;
+        TURNL180_PRE_ADJ  = -0.004f;
+        TURNR180_PRE_ADJ  = -0.004f;
+        TURNL180_POST_ADJ = -0.004f;
+        TURNR180_POST_ADJ = -0.004f;
+
+        TURNL180TT_ADJ  = 0.f;
+        TURNR180TT_ADJ  = 0.f;
     };
 };
 
@@ -388,9 +314,8 @@ struct SeachParam
 {
     //================ basic correction coefficients
      float EncoderUnitCompensation;  // reduce to run farther 1.01 -> 1.15
-
-    // static omega
-    float StaticOmegaCoef ;
+     float GyroUnitCompensation;  // reduce to turn/rotate more
+     float AcclUnitCompensation;
 
     //================ end basic correction coefficients
 
@@ -399,6 +324,7 @@ struct SeachParam
     // 3 params defines how far will the side ir corr for heading dir effects during diff act
     // after these fwd end corr starts
     float HEADING_BY_SIRSIDE_START_DIST;
+    float HEADING_BY_SIRSIDE_STOP_DIST;
    // 2 params defines segs where side ir corr for heading dir effects during centipede;
     float HEADING_BY_SIRFWD_BGNSTAT_POS;
     float HEADING_BY_SIRFWD_BEGIN_POS  ;
@@ -433,10 +359,10 @@ struct SeachParam
 
     SeachParam()
     {
+        //================ basic correction coefficients
         EncoderUnitCompensation = 1.016f;  // reduce to run farther 1.01 -> 1.15
-
-        // static omega
-         StaticOmegaCoef  = 0.0f;
+        GyroUnitCompensation    = 0.996f;  // reduce to turn/rotate more
+        AcclUnitCompensation    = 1.015f;
 
         //================ end basic correction coefficients
 
@@ -444,7 +370,8 @@ struct SeachParam
 
         // params defines how far will the side ir corr for heading dir effects during diff act
         // after these fwd end corr starts
-         HEADING_BY_SIRSIDE_START_DIST = 0.020f;
+         HEADING_BY_SIRSIDE_START_DIST = 0.005f;
+         HEADING_BY_SIRSIDE_STOP_DIST = 0.04f;
 
         // 2 params defines segs where side ir corr for heading dir effects during centipede
          HEADING_BY_SIRFWD_BGNSTAT_POS = 0.015f;

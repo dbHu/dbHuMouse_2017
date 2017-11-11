@@ -36,9 +36,13 @@ ORDERED_OBJS += \
 "./TskTop/DbgUart.obj" \
 "./TskTop/TskTop.obj" \
 "./TskTop/cmd.obj" \
+"./TskTop/paramsCorr.obj" \
 "./action/action.obj" \
+"./action/correction.obj" \
+"./action/motion.obj" \
 "./mmaze/mmaze.obj" \
 "./mouse/mouse.obj" \
+"./solve/actstatus.obj" \
 "./solve/solve.obj" \
 "../tm4c1294ncpdt.cmd" \
 $(GEN_CMDS__FLAG) \
@@ -211,9 +215,9 @@ dbMouse_FreeRTOS.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "assert.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" "FreeRTOS\croutine.obj" "FreeRTOS\event_groups.obj" "FreeRTOS\list.obj" "FreeRTOS\queue.obj" "FreeRTOS\tasks.obj" "FreeRTOS\timers.obj" "FreeRTOS\portable\CCS\ARM_CM4F\port.obj" "FreeRTOS\portable\CCS\ARM_CM4F\portasm.obj" "FreeRTOS\portable\MemMang\heap_2.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "PinConfig\pinout.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu2.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "TskTop\cmd.obj" "action\action.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\solve.obj" 
+	-$(RM) "assert.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" "FreeRTOS\croutine.obj" "FreeRTOS\event_groups.obj" "FreeRTOS\list.obj" "FreeRTOS\queue.obj" "FreeRTOS\tasks.obj" "FreeRTOS\timers.obj" "FreeRTOS\portable\CCS\ARM_CM4F\port.obj" "FreeRTOS\portable\CCS\ARM_CM4F\portasm.obj" "FreeRTOS\portable\MemMang\heap_2.obj" "Kalman\Kalman1Var.obj" "Kalman\Kalman2Var.obj" "Pid\Pid.obj" "PinConfig\pinout.obj" "Queue\Queue.obj" "TskIr\IrCorr.obj" "TskIr\TskIr.obj" "TskMotor\Imu2.obj" "TskMotor\MotorPwm.obj" "TskMotor\TskMotor.obj" "TskMotor\WheelEnc.obj" "TskTop\DbgUart.obj" "TskTop\TskTop.obj" "TskTop\cmd.obj" "TskTop\paramsCorr.obj" "action\action.obj" "action\correction.obj" "action\motion.obj" "mmaze\mmaze.obj" "mouse\mouse.obj" "solve\actstatus.obj" "solve\solve.obj" 
 	-$(RM) "tm4c1294ncpdt_startup_ccs.d" "FreeRTOS\croutine.d" "FreeRTOS\event_groups.d" "FreeRTOS\list.d" "FreeRTOS\queue.d" "FreeRTOS\tasks.d" "FreeRTOS\timers.d" "FreeRTOS\portable\CCS\ARM_CM4F\port.d" "FreeRTOS\portable\MemMang\heap_2.d" 
-	-$(RM) "assert.d" "main.d" "Kalman\Kalman1Var.d" "Kalman\Kalman2Var.d" "Pid\Pid.d" "PinConfig\pinout.d" "Queue\Queue.d" "TskIr\IrCorr.d" "TskIr\TskIr.d" "TskMotor\Imu2.d" "TskMotor\MotorPwm.d" "TskMotor\TskMotor.d" "TskMotor\WheelEnc.d" "TskTop\DbgUart.d" "TskTop\TskTop.d" "TskTop\cmd.d" "action\action.d" "mmaze\mmaze.d" "mouse\mouse.d" "solve\solve.d" 
+	-$(RM) "assert.d" "main.d" "Kalman\Kalman1Var.d" "Kalman\Kalman2Var.d" "Pid\Pid.d" "PinConfig\pinout.d" "Queue\Queue.d" "TskIr\IrCorr.d" "TskIr\TskIr.d" "TskMotor\Imu2.d" "TskMotor\MotorPwm.d" "TskMotor\TskMotor.d" "TskMotor\WheelEnc.d" "TskTop\DbgUart.d" "TskTop\TskTop.d" "TskTop\cmd.d" "TskTop\paramsCorr.d" "action\action.d" "action\correction.d" "action\motion.d" "mmaze\mmaze.d" "mouse\mouse.d" "solve\actstatus.d" "solve\solve.d" 
 	-$(RM) "FreeRTOS\portable\CCS\ARM_CM4F\portasm.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

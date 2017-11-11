@@ -63,9 +63,10 @@ extern volatile float CurrentV;	// Current Desired Linear Velocity
 extern float dist_en[240], vel_de[240], lv[240];
 extern QueueHandle_t MbCmd;
 extern Queue<VelOmega, true> *QMotor;
+extern VelOmega desire;    // desired lv & av from queue
 void Init();
 
-extern volatile PidParam pidparam;
+extern PidParam pidparam;
 }
 
 

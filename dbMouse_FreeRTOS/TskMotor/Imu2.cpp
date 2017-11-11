@@ -20,6 +20,9 @@
 #include "task.h"
 #include "queue.h"
 
+#include "physparams.h"
+#include "action/action.h"
+
 const unsigned char Imu20608Addr = 0x69;
 
 #pragma DATA_ALIGN(1024)
@@ -246,8 +249,8 @@ void ImuInit(void)
 
 bool ImuGetValues(ImuValues &imuVal)
 {
-    imuVal.acclX = -AcclUnit * (float)(short)((imuData.axh << 8) | imuData.axl);
-    imuVal.acclY = AcclUnit * (float)(short)((imuData.ayh << 8) | imuData.ayl);
+    imuVal.acclX = -AcclUnit * CP.GyroUnitCompensation * (float)(short)((imuData.axh << 8) | imuData.axl);
+    imuVal.acclY = AcclUnit * CP.AcclUnitCompensation * (float)(short)((imuData.ayh << 8) | imuData.ayl);
     imuVal.acclZ = AcclUnit * (float)(short)((imuData.azh << 8) | imuData.azl);
 
     imuVal.angvX = GyroUnit * (float)(short)((imuData.gxh << 8) | imuData.gxl);

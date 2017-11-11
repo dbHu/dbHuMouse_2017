@@ -73,7 +73,7 @@ inline float saturate(float v, float max, float min)
 
 VelOmega desire(dLvDefault, dAvDefault);    // desired lv & av from queue
 
-volatile PidParam pidparam;
+PidParam pidparam;
 
 Matrix2x2  A(1.f, PP::Ts, 0.f, 1.f);
 Vector2    B(1/2.f * 1e-6f, 1e-3f);
@@ -274,7 +274,7 @@ void task(void *pvParameters)
             lPwm = (lvPidOut - avPidOut);
             rightPwm = (int)saturate(rPwm, 478.f, -478.f);
             leftPwm = (int)saturate(lPwm, 478.f, -478.f);
-            if(fabs(rightPwm) > 320.f || fabs(leftPwm) > 320.f || fabs(AV) > 10.f || EncVel >= 1.f)
+            if(fabs(rightPwm) > 320.f || fabs(leftPwm) > 320.f || fabs(AV) > 15.f || EncVel >= 1.f)
             {
             	pwmCnt++;
             }

@@ -47,7 +47,7 @@ volatile IrDist IrDists = {{9.9f, 9.9f, 9.9f, 9.9f}};//, 9.9f, 9.9f, 9.9f, 9.9f}
 volatile IrDistBinThs IrBinThs;
 volatile IrDistBins IrBins;
 volatile IrHeadingYaw IrYaw;
-volatile float SideWallDisPos;
+volatile float SideLWallDisPos, SideRWallDisPos;
 
 volatile unsigned short irZeros[4] = {1, 1, 1, 1};
 
@@ -257,9 +257,13 @@ void irCalcs()
         {
             if(IrDists.ch[i] > 0.001f * (float)IrBinThs.ch[i].ThHi)
                 IrBins.ch[i] = 0;
-            if(TskIr::IrBins.LS != WallLS || TskIr::IrBins.RS !=  WallRS)
+            if(TskIr::IrBins.LS != WallLS)
             {
-                SideWallDisPos = TskMotor::DistanceAcc;
+                SideLWallDisPos = TskMotor::DistanceAcc;
+            }
+            if(TskIr::IrBins.RS !=  WallRS)
+            {
+                 SideRWallDisPos = TskMotor::DistanceAcc;
             }
         }
         else

@@ -17,6 +17,7 @@
 #include "../TskIr/TskIr.h"
 #include "TskTop/TskTop.h"
 #include "cmd.h"
+#include "paramsCorr.h"
 
 char *cmd;
 
@@ -198,230 +199,31 @@ void paramsCorr(void)
     print(TskTop::dbgStr);
     sprintf(TskTop::dbgStr, "num:       value to change\r\n");
     print(TskTop::dbgStr);
-    sprintf(TskTop::dbgStr, "input help get more detail\r\n");
-    print(TskTop::dbgStr);
     while(1)
     {
         TskPrint::UartGetLine(input);
 
         cmd = strtok(input, d);
 
-        if(!strcmp(cmd, "encoder")) {
-            sprintf(TskTop::dbgStr, "EncoderUnitCompensation:%5.3f\r\n", CP.EncoderUnitCompensation);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.EncoderUnitCompensation += temp;
-
-            sprintf(TskTop::dbgStr, "EncoderUnitCompensation:%5.3f\r\n", CP.EncoderUnitCompensation);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "lqr")) {
-            sprintf(TskTop::dbgStr, "posCoff:%5.3f velCoff:%5.3f\r\n",
-                    TskMotor::pidparam.posCoff,
-                    TskMotor::pidparam.velCoff);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            TskMotor::pidparam.posCoff += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            TskMotor::pidparam.velCoff += temp;
-
-            sprintf(TskTop::dbgStr, "posCoff:%5.3f velCoff:%5.3f\r\n",
-                    TskMotor::pidparam.posCoff,
-                    TskMotor::pidparam.velCoff);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "l90noir")) {
-            sprintf(TskTop::dbgStr, "L PRE:%5.3f, L POST:%5.3f\r\n",
-                    CP.TURNL90_PRE_ADJ,
-                    CP.TURNL90_POST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNL90_PRE_ADJ += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNL90_POST_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "L PRE:%5.3f, L POST:%5.3f\r\n",
-                CP.TURNL90_PRE_ADJ,
-                CP.TURNL90_POST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "l90ir")) {
-            sprintf(TskTop::dbgStr, "L ADJ DIST:%5.3f\r\n", CP.TURNLWAIT_DIST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNLWAIT_DIST_ADJ += temp;
-            sprintf(TskTop::dbgStr, "L ADJ DIST:%5.3f\r\n", CP.TURNLWAIT_DIST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "r90noir")) {
-            sprintf(TskTop::dbgStr, "R PRE:%5.3f, R POST:%5.3f\r\n",
-                    CP.TURNR90_PRE_ADJ,
-                    CP.TURNR90_POST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNR90_PRE_ADJ += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNR90_POST_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "R PRE:%5.3f, R POST:%5.3f\r\n",
-                CP.TURNR90_PRE_ADJ,
-                CP.TURNR90_POST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "r90ir")) {
-            sprintf(TskTop::dbgStr, "R ADJ DIST:%5.3f\r\n", CP.TURNRWAIT_DIST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.TURNRWAIT_DIST_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "R ADJ DIST:%5.3f\r\n", CP.TURNRWAIT_DIST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "restart")) {
-            sprintf(TskTop::dbgStr, "RESTART ADJ DIST:%5.3f\r\n", CP.RESTART_DIST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.RESTART_DIST_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "RESTART ADJ DIST:%5.3f\r\n", CP.RESTART_DIST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "stop")) {
-            sprintf(TskTop::dbgStr, "STOP ADJ DIST:%5.3f\r\n", CP.STOPEND_DIST_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.STOPEND_DIST_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "STOP ADJ DIST:%5.3f\r\n", CP.STOPEND_DIST_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-        else if(!strcmp(cmd, "fwd")) {
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f\r\n",
-                CP.LFWDEND_DIST_W2NW,
-                CP.RFWDEND_DIST_W2NW,
-                CP.CENTIPEDE_CORR_GAIN);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.LFWDEND_DIST_W2NW += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.RFWDEND_DIST_W2NW += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.CENTIPEDE_CORR_GAIN += temp;
-
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f\r\n",
-                CP.LFWDEND_DIST_W2NW,
-                CP.RFWDEND_DIST_W2NW,
-                CP.CENTIPEDE_CORR_GAIN);
-            print(TskTop::dbgStr);
-        }
-
-
-        else if(!strcmp(cmd, "back")) {
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f %5.3f %5.3f\r\n",
-                CP.FWDDISADJ,
-                CP.LRBACKANGLE_ADJ,
-                CP.FLRYAWERROR,
-                CP.LBACKCENTER_ADJ,
-                CP.RBACKCENTER_ADJ);
-            print(TskTop::dbgStr);
-
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.FWDDISADJ       += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.LRBACKANGLE_ADJ += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.FLRYAWERROR     += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.LBACKCENTER_ADJ += temp;
-            cmd = strtok(NULL, d);
-            temp = atof(cmd);
-            CP.RBACKCENTER_ADJ += temp;
-
-            sprintf(TskTop::dbgStr, "Params as:%5.3f %5.3f %5.3f %5.3f %5.3f\r\n",
-                CP.FWDDISADJ,
-                CP.LRBACKANGLE_ADJ,
-                CP.FLRYAWERROR,
-                CP.LBACKCENTER_ADJ,
-                CP.RBACKCENTER_ADJ);
-            print(TskTop::dbgStr);
-        }
-
-
-        else if (!strcmp(input, "exit")) {
-            /* Exit the console task */
-            sprintf(TskTop::dbgStr, "Are you sure you want to exit the console? Y/N: \r\n");
-            print(TskTop::dbgStr);
-
-            TskPrint::UartGetLine(input);
-
-            if ((input[0] == 'y' || input[0] == 'Y') && input[1] == 0x00) {
+        for(int i = 0; i < varnum; i++){
+            if(!strcmp(cmd, varname[i].name)) {
+                cmd = strtok(NULL, d);
+                temp = atof(cmd);
+                if(isnan(temp))
+                    temp = *varname[i].value;
+                sprintf(TskTop::dbgStr, "\t %s = %6.3f (was %6.3f)\r\n", varname[i].name,
+                        *varname[i].value + temp, *varname[i].value);
+                print(TskTop::dbgStr);
+                *varname[i].value += temp;
+            }
+            else if(!strcmp(cmd, "exit")) {
                 exit_flag = 1;
+                break;
             }
         }
 
-        else {
-            /* Print a list of valid commands. */
-            sprintf(TskTop::dbgStr, "Valid commands:\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[encoder Compensation]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[lqr posCoff velCoff]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[l90noir pre post]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[l90ir adj]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[r90noir pre post]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[r90ir adj]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[stop adj]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[restart adj]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[fwd lw2nw rw2nw centiP]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[back fwd lrangle flryaw lback rback]\r\n");
-            print(TskTop::dbgStr);
-            sprintf(TskTop::dbgStr, "- str num :[exit]\r\n");
-            print(TskTop::dbgStr);
-            vTaskDelay(5000);
-        }
+        sprintf(TskTop::dbgStr, "input other params\n");
+        print(TskTop::dbgStr);
 
         if(exit_flag){
             sprintf(TskTop::dbgStr, "input other command\n");
@@ -459,7 +261,7 @@ void pidTest(void)
                 TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
                 sprintf(TskTop::dbgStr, "QMotor is over\n");
                 print(TskTop::dbgStr);
-                TskAction::WaitQEnd();
+                TskAction::WaitSeqEmpty();
                 vTaskDelay(50);
                 MotorStop();
                 break;
@@ -474,7 +276,7 @@ void pidTest(void)
                 for(i = 0; i < cmd; i++)
                     TskMotor::QMotor->En(TskMotor::VelOmega(0.f,5.f));
                 TskMotor::QMotor->En(TskMotor::VelOmega(0.f,0.f));
-                TskAction::WaitQEnd();
+                TskAction::WaitSeqEmpty();
                 vTaskDelay(50);
                 MotorStop();
                 break;
@@ -500,11 +302,12 @@ void SendActionAndWait(TskAction::Act::ActType actMsg)
 
 void Action(void)
 {
-    bool act_flag = 1;
+    bool act_flag = 0;
     TskTop::SetLeds(0x7);
     char *d = " ";
+    char str[20];
     int num;
-    TskAction::Act::ActType act[8];
+    TskAction::Act::ActType act[10];
 
     sprintf(TskTop::dbgStr, "please input action as format\r\n");
     print(TskTop::dbgStr);
@@ -515,7 +318,9 @@ void Action(void)
     {
         sprintf(TskTop::dbgStr, "please input action as format\r\n");
         print(TskTop::dbgStr);
-        act_flag = 1;
+        sprintf(TskTop::dbgStr, "[num] [s or r] [action] ...\r\n");
+        print(TskTop::dbgStr);
+        act_flag = 0;
         TskPrint::UartGetLine(input);
         cmd = strtok(input, d);
 
@@ -528,66 +333,67 @@ void Action(void)
         }
 
         num = (*cmd - '0');
-        if(num > 8){
-            sprintf(TskTop::dbgStr, "over the limitation, please input again\r\n");
+        if(num > 9){
+            sprintf(TskTop::dbgStr, "over the limitation\r\n");
             print(TskTop::dbgStr);
-            break;
+            num = 1;
         }
         TskTop::SetLeds(0x0);
 
-        for(int i = 0; i < num; i++)
+        cmd = strtok(NULL, d);
+        if(!strcmp(cmd, "s"))
         {
+           act[0] = TskAction::Act::Start;
+           act[num + 1] = TskAction::Act::Stop;
+        }
+        else if(!strcmp(cmd, "r"))
+        {
+           act[0] = TskAction::Act::RushStart;
+           act[num + 1] = TskAction::Act::RushStop;
+        }
+        else
+        {
+           num = 1;
+        }
+
+        for(int i = 1; i < num + 1; i++)
+        {
+            act_flag = 0;
             cmd = strtok(NULL, d);
-            if(!strcmp(cmd, "start")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::Start);
+            for(int j = 0; j < actnum; j++)
+            {
+                str[0] = '\0';
+                strcat(str, actname[j].name);
+                strcat(str, "ir");
+                if(!strcmp(cmd, actname[j].name))
+                {
+                    act[i] = actname[j].action;
+                    act_flag = 1;
+                    break;
+                }
+                else if(!strcmp(cmd, str))
+                {
+                    act[i] = (TskAction::Act::ActType)(actname[j].action | (TskAction::Act::Corr));
+                    act_flag = 1;
+                    break;
+                }
             }
-            else if(!strcmp(cmd, "l90")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::L90);
-            }
-            else if(!strcmp(cmd, "l90r")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::L90 | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "r90")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::R90);
-            }
-            else if(!strcmp(cmd, "r90r")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::R90 | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "stop")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::Stop);
-            }
-            else if(!strcmp(cmd, "stopr")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Stop | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "back")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::Back);
-            }
-            else if(!strcmp(cmd, "backr")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Back | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "fwd")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::Fwd);
-            }
-            else if(!strcmp(cmd, "fwdr")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Fwd | TskAction::Act::Corr));
-            }
-            else if(!strcmp(cmd, "restart")){
-                act[i] = ((TskAction::Act::ActType) TskAction::Act::Restart);
-            }
-            else if(!strcmp(cmd, "restartr")){
-                act[i] = ((TskAction::Act::ActType) (TskAction::Act::Restart | TskAction::Act::Corr));
-            }
-            else {
+
+            if(!act_flag) {
                 sprintf(TskTop::dbgStr, "%s doesn't exist", cmd);
                 print(TskTop::dbgStr);
-                act_flag = 0;
                 break;
-            }
+            } 
+        }
+
+        if(act[num] == TskAction::Act::Back || act[num] == TskAction::Act::Stop || act[num] == TskAction::Act::RushStop )
+        {
+            act[num + 1] = TskAction::Act::Null;
         }
 
         if(act_flag){
             MotorStart();
-            for(int i = 0; i < num; i++)
+            for(int i = 0; i < num + 2; i++)
             {
                 SendActionAndWait(act[i]);
             }

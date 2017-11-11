@@ -32,6 +32,10 @@ action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Pid/p
 action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/WheelEnc.h
 action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/solve/solve.h
 action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/solve/../Queue/Queue.h
+action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/correction.h
+action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h
+action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/motion.h
+action/action.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/PinConfig/pinout.h
 
 ../action/action.cpp: 
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include/stdio.h: 
@@ -65,3 +69,7 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Pid/pid.h:
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/TskMotor/WheelEnc.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/solve/solve.h: 
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/solve/../Queue/Queue.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/correction.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/action/motion.h: 
+D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/PinConfig/pinout.h: 

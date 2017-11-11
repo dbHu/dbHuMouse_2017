@@ -32,6 +32,7 @@ TskTop/cmd.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Qu
 TskTop/cmd.obj: D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h
 TskTop/cmd.obj: ../TskTop/../TskIr/TskIr.h
 TskTop/cmd.obj: ../TskTop/cmd.h
+TskTop/cmd.obj: ../TskTop/paramsCorr.h
 
 ../TskTop/cmd.cpp: 
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.1.LTS/include/string.h: 
@@ -65,3 +66,4 @@ D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/Queue/Queue.h:
 D:/doubi/desktop/dbMouse_2017/ccs_test/dbMouse_FreeRTOS/FreeRTOS/include/semphr.h: 
 ../TskTop/../TskIr/TskIr.h: 
 ../TskTop/cmd.h: 
+../TskTop/paramsCorr.h: 

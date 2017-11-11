@@ -164,9 +164,9 @@ void SearchAndRun(bool flag)
 			case Micromouse::Turning::Backward:
 				if(searchFinish)
 				{
-					actMsg = (TskAction::Act::ActType)(TskAction::Act::TBack | TskAction::Act::Corr);
-					rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
-			        configASSERT(rtn == pdPASS);
+//					actMsg = (TskAction::Act::ActType)(TskAction::Act::TBack | TskAction::Act::Corr);
+//					rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
+//			        configASSERT(rtn == pdPASS);
 					searchFinish = false;
 					breakBeforeRun();
 					actMsg = (TskAction::Act::ActType)(TskAction::Act::Start | TskAction::Act::Corr);
