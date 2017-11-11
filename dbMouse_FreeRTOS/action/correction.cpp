@@ -454,7 +454,7 @@ bool CorrTurnTime::WallDis(float pos, float adj)
             if(TskIr::SideLWallDisPos > 0.001f || TskIr::SideRWallDisPos > 0.001f)
             pstamp = TskMotor::DistanceAcc - ((TskIr::SideLWallDisPos > TskIr::SideRWallDisPos)?
                  TskIr::SideLWallDisPos : TskIr::SideRWallDisPos);
-            perr = (pstamp > 1e-6f && pstamp < 0.025f)? pstamp : 0.f;
+            perr = (pstamp > 1e-6f && pstamp < 0.05f)? pstamp : 0.f;
 
             //from wall to no wall
             if(perr > 1e-6f)

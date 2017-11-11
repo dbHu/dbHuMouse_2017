@@ -25,9 +25,12 @@
 #include "solve/solve.h"
 
 namespace TskTop{
-const int tskPrio = 4;
-const int tskStkSize = 1024;
-QueueHandle_t MbCmd;
+const int tskPrio1 = 4;
+const int tskStkSize1 = 1024;
+const int tskPrio2 = 2;
+const int tskStkSize2 = 128;
+
+QueueHandle_t MbCmd, MbLed;
 
 char dbgStr[128];
 
@@ -190,7 +193,7 @@ void irMonitor()
         configASSERT(rtn == pdPASS);
 
         vTaskDelay(500);
-        if(TskIr::TestIrTouch(TskIr::IrCh::SL | TskIr::IrCh::SR, 2200, 1900))
+        if(TskIr::TestIrTouch(TskIr::IrCh::SL | TskIr::IrCh::SR, 2500, 2400))
             break;
     }
 
@@ -205,7 +208,7 @@ void uartCmd()
 void actionTest(void)
 {
     bool rtn;
-    TskTop::SetLeds(0x7);
+    TskTop::SetLeds(0x3);
     TskAction::Act::ActType actMsg;
     TskAction::ActMsg::MsgType end_Msg;
 
@@ -256,7 +259,7 @@ void solveTest()
     while(true){
         if(TskIr::TestIrTouch(TskIr::IrCh::FL, 1600, 1200))
         {
-            SetLeds(0x0f);
+            SetLeds(0x03);
             msg = (solve::Solve::SolveType)(solve::Solve::ALGOTEST | solve::Solve::Finish);
             break;
         }
@@ -363,13 +366,6 @@ void RushTest()
     }
 }
 
-void SetLeds(unsigned char val)
-{
-    LED_write(DBMOUSE_LED_0, (val & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
-    LED_write(DBMOUSE_LED_1, (val & 0x2) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
-    LED_write(DBMOUSE_LED_2, (val & 0x4) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
-}
-
 void actPrint(TskAction::Act::ActType act)
 {
     bool rtn;
@@ -430,16 +426,55 @@ void dbgPutModeName(MouseMode::ModeType mode)
     vTaskDelay(50);
 }
 
+void SetLeds(unsigned char val)
+{
+//    bool rtn;
+//    unsigned char value = val;
+//    rtn = xQueuePost(MbLed, &value, portMAX_DELAY);
+//    configASSERT(rtn == pdPASS);
+    LED_write(DBMOUSE_LED_0, (val & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+    LED_write(DBMOUSE_LED_1, (val & 0x2) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+}
+
+//void ledtask(void *pvParameters)
+//{
+//    BaseType_t rtn;
+//    unsigned char value;
+//
+//    while(true){
+//        if(xQueuePend(MbLed, &value, portMAX_DELAY)){
+//            if(value & 0x0C)
+//            {
+//                LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
+//                LED_write(DBMOUSE_LED_1, DBMOUSE_LED_OFF);
+//                for(int i = 0; i < 2 * value; i++)
+//                {
+//                    LED_write(DBMOUSE_LED_0, (i & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+//                    vTaskDelay(50);
+//                }
+//                LED_write(DBMOUSE_LED_0, DBMOUSE_LED_OFF);
+//            }
+//            else
+//            {
+//                LED_write(DBMOUSE_LED_0, (value & 0x1) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+//                LED_write(DBMOUSE_LED_1, (value & 0x2) ? DBMOUSE_LED_ON : DBMOUSE_LED_OFF);
+//            }
+//        }
+//    }
+//}
+
 void task(void *pvParameters)
 {
     BaseType_t rtn;
 
+//    size_t hpsize;
+//    hpsize = xPortGetFreeHeapSize();
 	vTaskDelay(5000);
 	SetLeds(0x01);
     vTaskDelay(100);
     SetLeds(0x02);
     vTaskDelay(100);
-    SetLeds(0x04);
+    SetLeds(0x03);
     vTaskDelay(100);
     SetLeds(0x00);
     vTaskDelay(1000);
@@ -528,9 +563,15 @@ void Init()
 
     MbCmd = xQueueCreate(4, sizeof(TskAction::ActMsg::MsgType));
 	configASSERT(MbCmd);
+//    MbLed = xQueueCreate(4, sizeof(unsigned char));
+//    configASSERT(MbLed);
+//    // Create tasks
+//    rtn = xTaskCreate(ledtask, (const portCHAR *)"TopLedTask",
+//                tskStkSize2, NULL, tskPrio2, NULL);
+//    configASSERT(rtn == pdPASS);
     // Create tasks
     rtn = xTaskCreate(task, (const portCHAR *)"TopTask",
-                tskStkSize, NULL, tskPrio, NULL);
+                tskStkSize1, NULL, tskPrio1, NULL);
     configASSERT(rtn == pdPASS);
 }
 

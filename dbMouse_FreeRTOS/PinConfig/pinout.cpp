@@ -98,15 +98,15 @@ void Board_General_Init(void)
     HWREG(GPIO_PORTE_AHB_BASE | GPIO_O_DATA)&= ~0x0000000A;    //OUTPUT 0
 
     //
-    // PQ0 PD2 and PD3 are used for USER LEDs.
+    // PD2 -> PA5 and PD3 -> PM1 are used for USER LEDs.
     //
-    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DIR) |= 0x0000000C;     //PD2 PD3 DIR OUTPUT
-    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DEN) |= 0x0000000C;     //PD2 PD3 GPIO FUNCTION
-    HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)|= 0x0000000C;     //OUTPUT 1
+    HWREG(GPIO_PORTA_AHB_BASE | GPIO_O_DIR) |= 0x00000020;     //PA5 DIR OUTPUT
+    HWREG(GPIO_PORTA_AHB_BASE | GPIO_O_DEN) |= 0x00000020;     //PA5 PA5 GPIO FUNCTION
+    HWREG(GPIO_PORTA_AHB_BASE | GPIO_O_DATA)|= 0x00000020;     //OUTPUT 1
 
-    HWREG(GPIO_PORTQ_BASE | GPIO_O_DIR) |= 0x00000001;     //PQ0 DIR OUTPUT
-    HWREG(GPIO_PORTQ_BASE | GPIO_O_DEN) |= 0x00000001;     //PQ0 GPIO FUNCTION
-    HWREG(GPIO_PORTQ_BASE | GPIO_O_DATA)|= 0x00000001;     //OUTPUT 1
+    HWREG(GPIO_PORTM_BASE | GPIO_O_DIR) |= 0x00000002;     //PM1 DIR OUTPUT
+    HWREG(GPIO_PORTM_BASE | GPIO_O_DEN) |= 0x00000002;     //PM1 GPIO FUNCTION
+    HWREG(GPIO_PORTM_BASE | GPIO_O_DATA)|= 0x00000002;     //OUTPUT 1
 #endif
 
 #if I2CFUNC
@@ -152,41 +152,30 @@ void LED_write(unsigned int index, unsigned int value)
     //
     // Check the mask and set or clear the LED as directed.
     //
-    if(index & 0x1)        //DBMOUSE_LED_0 R PD2
+    if(index & 0x1)        //DBMOUSE_LED_0 PA5
     {
         if (value)    //DBMOUSE_LED_OFF
         {
-            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)|= 0x00000004;     //OUTPUT 1
+            HWREG(GPIO_PORTA_AHB_BASE | GPIO_O_DATA)|= 0x00000020;     //OUTPUT 1
         }
         else                //DBMOUSE_LED_ON
         {
-            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)&= ~0x00000004;     //OUTPUT 0
+            HWREG(GPIO_PORTA_AHB_BASE | GPIO_O_DATA)&= ~0x00000020;     //OUTPUT 0
         }
     }
 
-    if (index & 0x2)        //DBMOUSE_LED_1 G PD3
+    if (index & 0x2)        //DBMOUSE_LED_1 PM1
     {
         if (value)    //DBMOUSE_LED_OFF
         {
-            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)|= 0x00000008;     //OUTPUT 1
+            HWREG(GPIO_PORTM_BASE | GPIO_O_DATA)|= 0x00000002;     //OUTPUT 1
         }
         else                //DBMOUSE_LED_ON
         {
-            HWREG(GPIO_PORTD_AHB_BASE | GPIO_O_DATA)&= ~0x00000008;     //OUTPUT 0
+            HWREG(GPIO_PORTM_BASE | GPIO_O_DATA)&= ~0x00000002;     //OUTPUT 0
         }
     }
 
-    if (index & 0x4)        //DBMOUSE_LED_2 B PQ0
-    {
-        if (value)    //DBMOUSE_LED_OFF
-        {
-            HWREG(GPIO_PORTQ_BASE | GPIO_O_DATA)|= 0x00000001;     //OUTPUT 1
-        }
-        else                //DBMOUSE_LED_ON
-        {
-            HWREG(GPIO_PORTQ_BASE | GPIO_O_DATA)&= ~0x00000001;     //OUTPUT 0
-        }
-    }
 }
 
 void IR_write(unsigned int index, unsigned int value)

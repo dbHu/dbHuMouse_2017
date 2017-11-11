@@ -49,7 +49,7 @@ extern "C"
 
 #define DBMOUSE_LED_0       0x1
 #define DBMOUSE_LED_1       0x2
-#define DBMOUSE_LED_2       0x4
+// #define DBMOUSE_LED_2       0x4
 	
 #define DBMOUSE_IR_FL		0
 #define DBMOUSE_IR_FR		1

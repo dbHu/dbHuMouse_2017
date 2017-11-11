@@ -33,7 +33,7 @@ const float g =9.80665f;
 const float H =0.005f;
 
 // half of distance between 2 tires
-const float W =0.0185f;
+const float W =0.0175f;
 
 // wheel
 const float RWheel = 0.0063f;
@@ -49,11 +49,11 @@ const float Ts =0.001f;
 
 //================ geometry informations
 // gravity center to the center of 4 wheels
-const float GvCenterFwd =   -0.002f;
+const float GvCenterFwd =   0.f;
 
 // all geometry of mouse related to GRAVITY CENTER
 const float BodyLength =   0.041f;
-const float BodyWidth =    0.037f;
+const float BodyWidth =    0.035f;
 const float HeadFwd = (0.0228f - GvCenterFwd);
 // geometry center forward
 const float GeoFwd =  (0.000f - GvCenterFwd);
@@ -63,18 +63,18 @@ const float TailBack =(0.0182f + GvCenterFwd + 0.001f);
 
 // ir position related to gravity center
 // forward ir forward dist to gravity center, approx
-const float IrFFwd =  (0.0157f - GvCenterFwd);
+const float IrFFwd =  (0.0135f - GvCenterFwd);
 // side ir forward dist to gravity center, approx
-const float IrSFwd =  (0.0148f - GvCenterFwd);
+const float IrSFwd =  (0.0145f - GvCenterFwd);
 
 // forward ir side dist to gravity center, approx
-const float IrFSide =  0.0145f;
+const float IrFSide =  0.0129f;
 // side ir side dist to gravity center, approx
-const float IrSSide =  0.0083f;
+const float IrSSide =  -0.0058f;
 
-const float IrFwdLRDist =  0.029f;
+const float IrFwdLRDist =  0.0258f;
 
-const float IrSizeAngle =  (60.f / 180.0f * 3.1415926536f);//side ir angle
+const float IrSizeAngle =  (57.f / 180.0f * 3.1415926536f);//side ir angle
 
 // grids
 const float GridSize =   0.090f;
@@ -361,7 +361,7 @@ struct SeachParam
     {
         //================ basic correction coefficients
         EncoderUnitCompensation = 1.016f;  // reduce to run farther 1.01 -> 1.15
-        GyroUnitCompensation    = 0.996f;  // reduce to turn/rotate more
+        GyroUnitCompensation    = 0.998f;  // reduce to turn/rotate more
         AcclUnitCompensation    = 1.015f;
 
         //================ end basic correction coefficients
@@ -384,22 +384,22 @@ struct SeachParam
 
         // left & right turn straight segment when no fwd wall for turnwait
         // abs of these must be less than GeoFwd
-         TURNL90_PRE_ADJ  = -0.001f;
-         TURNR90_PRE_ADJ  = 0.003f;
+         TURNL90_PRE_ADJ  = 0.003f;
+         TURNR90_PRE_ADJ  = 0.007f;
          TURNL90_POST_ADJ = -0.001f;
-         TURNR90_POST_ADJ = -0.005f;
+         TURNR90_POST_ADJ = -0.004f;
 
         // turn wait dist adjustment
-         TURNLWAIT_DIST_ADJ    = -0.002f;    // more positive to turn later
-         TURNRWAIT_DIST_ADJ    = -0.002f;    // more positive to turn later
+         TURNLWAIT_DIST_ADJ    = 0.04f;    // more positive to turn later
+         TURNRWAIT_DIST_ADJ    = 0.043f;    // more positive to turn later
 
          RESTART_DIST_ADJ = 0.002f;
 
          STOPEND_DIST_ADJ = 0.001f;
 
-         FWDDISADJ = 0.002f;
-         LRBACKANGLE_ADJ  = 2.f * PP::PI / 180.f; //
-         FLRYAWERROR = 0.057f * PP::PI / 180.f;
+         FWDDISADJ = 0.004f;
+         LRBACKANGLE_ADJ  = -.5f * PP::PI / 180.f; //
+         FLRYAWERROR = 0.02f * PP::PI / 180.f;
          LBACKCENTER_ADJ  = 10.f;   //
          RBACKCENTER_ADJ  = 10.f;   //
     };

@@ -79,10 +79,14 @@ float actHeadingDirCorrByFwdIr(WallStatus *wall)
 {
 
     float yaw;
+    float rtn;
     TskTop::SetLeds(0x2);
     yaw = TskIr::IrYaw.byFLR;
+    if(fabs(CP.FLRYAWERROR-yaw) < 0.5 * PP::PI / 180.f)
+        rtn = 0.f;
+    else rtn = CP.FLRYAWERROR-yaw;
     TskTop::SetLeds(0x2);
-    return actHDirPid->Tick(CP.FLRYAWERROR-yaw);
+    return actHDirPid->Tick(rtn);
 }
 
 float actFwdDistCorrByFwdIr(WallStatus *wall)
@@ -227,11 +231,12 @@ void actBack(bool corr, WallStatus *wall)
 
     if(corr){
         TskTop::SetLeds(0x0);
+        WaitSeqEmpty();
         if(wall->left || wall->right)
         {
             i = 0;
             while(fabsf(CP.FLRYAWERROR - TskIr::IrYaw.byFLR) > 0.5 * PP::PI / 180.f
-                    || fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.002f)
+                    || fabsf(CP.FWDDISADJ - (PP::CenterToWall - 0.5f * (TskIr::IrDists.FLns + TskIr::IrDists.FRns))) > 0.001f)
             {
                 rtn = xSemaphorePend(SemActTick, 2);
                 configASSERT(rtn == pdPASS);
@@ -397,14 +402,14 @@ void actLR90(bool corr, Act::ActType act)
 
     vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPre, v_s, &accl);
 
-    CorrTurnTime    corrTurn(ch, straightPre - adj, PP::SearchSpeed, o_s, oslen, v_s, vslen);
-    CorrYawByFwd    corrYaw(0.f, 0.005f);
 
     for(i = 0; i < vslen; i++) MotionSeqWrite(v_s[i],0.f);
 
-    for(i = 0; i < oslen; i++) MotionSeqWrite(PP::SearchSpeed,o_s[i]);
-
     vslen = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, straightPost, v_s, &accl);
+
+    CorrTurnTime    corrTurn(ch, straightPre, PP::SearchSpeed, o_s, oslen, v_s, vslen);
+    CorrYawByFwd    corrYaw(0.f, 0.005f);
+    for(i = 0; i < oslen; i++) MotionSeqWrite(PP::SearchSpeed,o_s[i]);
     for(i = 0; i < vslen; i++) MotionSeqWrite(v_s[i],0.f);
 
     TskTop::SetLeds(0x0);
@@ -414,7 +419,7 @@ void actLR90(bool corr, Act::ActType act)
         float pos = TskMotor::DistanceAcc - pos0;
         if(corr)
         {
-            corrTurn.Tick(straightPre - adj);
+            corrTurn.WallDis(pos, adj);
             corrYaw.Tick(pos);
         }
 

@@ -235,7 +235,7 @@ void irCalcs()
         else
             IrDists.ch[i] = expf((logf(IrInts.ch[i]) - IrACs.k[i][0]) * IrACs.k[i][1]) + PP::IrSSide;
 #elif(IrApproxOrder == 2)
-        if((float)IrInts.ch[i] > 0)
+        if((float)IrInts.ch[i] > 400)
         {
         	float ln = logf((float)IrInts.ch[i]);
             if(i < 2)
@@ -309,12 +309,12 @@ void task(void *pvParameters)
 #endif
 
     //TODO
-    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (135 | (145 << 16));
-    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (135 | (145 << 16));
+    IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (125 | (135 << 16));
+    IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (125 | (135 << 16));
     IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (65 | (75 << 16));
     IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (60 | (70 << 16));
-    IrBins.Fwd   = 0; IrBinThs.Fwd1.Th   = (135 | (145 << 16));
-                      IrBinThs.Fwd2.Th   = (115 | (125 << 16));
+    IrBins.Fwd   = 0; IrBinThs.Fwd1.Th   = (105 | (120 << 16));
+                      IrBinThs.Fwd2.Th   = (105 | (120 << 16));
     // IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (250 | (285 << 16));
     // IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (250 | (285 << 16));
     // IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (150 << 16));

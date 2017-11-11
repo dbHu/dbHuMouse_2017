@@ -19,7 +19,7 @@
 
 #define UART_RX_BUFF 128
 namespace TskPrint{
-	const int tskPrio = 2;
+	const int tskPrio = 3;
 	const int tskStkSize = 512;
 
 	QueueHandle_t MbCmd;

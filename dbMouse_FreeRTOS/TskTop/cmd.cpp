@@ -386,7 +386,11 @@ void Action(void)
             } 
         }
 
-        if(act[num] == TskAction::Act::Back || act[num] == TskAction::Act::Stop || act[num] == TskAction::Act::RushStop )
+        if(act[num] == TskAction::Act::Back
+           ||(act[num] == TskAction::Act::Back | TskAction::Act::Corr)
+           ||(act[num] == TskAction::Act::Stop)
+           ||(act[num] ==  TskAction::Act::Stop | TskAction::Act::Corr)
+           || (act[num] == TskAction::Act::RushStop))
         {
             act[num + 1] = TskAction::Act::Null;
         }

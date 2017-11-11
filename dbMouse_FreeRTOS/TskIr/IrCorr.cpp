@@ -318,7 +318,7 @@ void doIrCorrection()
             for(aim = 0; aim < 6; aim++){
                 // while(TskMotor::DistanceAcc - distZero < aim)
                 //     vTaskDelay(1);
-                WaitIrTouch(IrCh::SL | IrCh::SR, 2200, 1900);
+                WaitIrTouch(IrCh::SL | IrCh::SR, 2500, 2400);
 
                 LED_write(DBMOUSE_LED_1, DBMOUSE_LED_ON);
                 vTaskDelay(1000);

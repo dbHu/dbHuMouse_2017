@@ -41,7 +41,7 @@ void breakBeforeRun()
 	TskMotor::MotorMsg::MsgType motMsg;
 
 	vTaskDelay(3000);
-	TskTop::SetLeds(0x0f);
+	TskTop::SetLeds(0x03);
 	motMsg = TskMotor::MotorMsg::DisableMotors;
 	rtn = xQueuePost(TskMotor::MbCmd, &motMsg, portMAX_DELAY);
     configASSERT(rtn == pdPASS);
@@ -60,7 +60,7 @@ void breakBeforeRun()
 	while(true){
 		if(TskIr::TestIrTouch(TskIr::IrCh::FL | TskIr::IrCh::FR, 1600, 1200))
 		{
-			TskTop::SetLeds(0x0f);
+			TskTop::SetLeds(0x03);
 
 			motMsg = TskMotor::MotorMsg::EnableAcqZeros;
 			rtn = xQueuePost(TskMotor::MbCmd, &motMsg, portMAX_DELAY);
@@ -126,7 +126,7 @@ void SearchAndRun(bool flag)
 	rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
     configASSERT(rtn == pdPASS);
 	int nextWall = GetNextWall();
-    TskTop::SetLeds(0x0f);
+    TskTop::SetLeds(0x03);
 	while(true){
         wFwd = (nextWall & 0x1) ? Micromouse::WallType::Blocked : Micromouse::WallType::Open;
         wLeft = (nextWall & 0x2) ? Micromouse::WallType::Blocked : Micromouse::WallType::Open;
@@ -198,14 +198,14 @@ void Rush()
 
 	Micromouse::GridCoor Target(7, 7);
     Micromouse::Mouse m(16, 16, Target);
-    TskTop::SetLeds(0x0f);
+    TskTop::SetLeds(0x03);
     vTaskDelay(100);
     TskTop::SetLeds(0x00);
     m.GetQAct();
     while(QAct->Len())
     {
 		if(!QAct->De(actMsg))
-		    TskTop::SetLeds(0x0f);
+		    TskTop::SetLeds(0x03);
 		rtn = xQueuePost(TskAction::MbCmd, &actMsg, portMAX_DELAY);
         configASSERT(rtn == pdPASS);
 		rtn = xQueuePend(TskTop::MbCmd, &end_Msg, portMAX_DELAY);

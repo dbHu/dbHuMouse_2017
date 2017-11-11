@@ -11,25 +11,32 @@
     {
         int status = 0;
         int p = 0;
+
         Turning::Type turn;
-        while(q->Length())
+        while(status != 11)
         {
             turn = q->Dequeue();
             switch(status)
             {
-            case 0: //Entry point
+            case 0:         //Entry point
+                solve::QAct->En(TskAction::Act::RushStart);
                 if(turn == Turning::Forward)
-                    status = 1;
+                    p = 1;
                 break;
-            case 1:
+            case 1:        //ORTHO 
                 if(turn == Turning::Forward);
-//                  solve::QAct->En(TskAction::Act::SRush);
-                else if(turn == Turning::Right)
+//                  p++;
+                else if(turn == Turning::Right){
+                    sendNFwd(p);
+                    p = 0;
                     status = 2;
+                }
                 else if(turn == Turning::Left)
                     status = 3;
+                else if(turn == Turning::Backward)
+                    status = 10;
                 break;
-            case 2:
+            case 2:       //ORTHO_R
                 if(turn == Turning::Left)
                 {
                     solve::QAct->En(TskAction::Act::R45i);
@@ -45,7 +52,7 @@
                     status = 1;
                 }
                 break;
-            case 3:
+            case 3:       //ORTHO_L
                 if(turn == Turning::Right)
                 {
                     solve::QAct->En(TskAction::Act::L45i);
@@ -61,7 +68,7 @@
                     status = 1;
                 }
                 break;
-            case 4:
+            case 4:       //ORTHO_RR
                 if(turn == Turning::Right)
                 {
 //                  solve::QAct->En(TskAction::Act::TRush);
@@ -77,7 +84,7 @@
                     status = 8;
                 }
                 break;
-            case 5:
+            case 5:       //DIAG_RL
                 if(turn == Turning::Left)
                 {
 //                  solve::QAct->En(TskAction::Act::TRush);
@@ -93,7 +100,7 @@
                     status = 9;
                 }
                 break;
-            case 6:
+            case 6:       //ORTHO_LL
                 if(turn == Turning::Forward)
                 {
                     solve::QAct->En(TskAction::Act::L180);
@@ -105,7 +112,7 @@
                     status = 5;
                 }
                 break;
-            case 7:
+            case 7:       //DIAG_LR
                 if(turn == Turning::Forward)
                 {
                     solve::QAct->En(TskAction::Act::L180);
@@ -117,7 +124,7 @@
                     status = 4;
                 }
                 break;
-            case 8:
+            case 8:       //DIAG_LL
                 if(turn == Turning::Right)
                 {
 //                  solve::QAct->En(TskAction::Act::L90t);
@@ -129,7 +136,7 @@
                     status = 1;
                 }
                 break;
-            case 9:
+            case 9:       //DIAG_RR
                 if(turn == Turning::Left)
                 {
 //                  solve::QAct->En(TskAction::Act::R90t);
@@ -141,8 +148,14 @@
                     status = 1;
                 }
                 break;
-            }
-            p++;
+            case 10:       //STOP
+                solve::QAct->En(TskAction::Act::L135o);
+                status = 11;
+                break;
+            default:
+                configAssert(false);
+                status = 11;
+                break;
         }
     }
 #endif

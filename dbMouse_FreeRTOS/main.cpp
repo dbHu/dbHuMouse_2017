@@ -32,7 +32,7 @@
 int main(void)
 {
     // Initialize system clock to 120 MHz
-    ROM_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN |
+    ROM_SysCtlClockFreqSet((SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN |
                             SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
                             SYSTEM_CLOCK);
 
