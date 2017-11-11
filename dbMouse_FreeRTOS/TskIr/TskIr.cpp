@@ -274,13 +274,13 @@ void irCalcs()
     }
     if(IrBins.Fwd)
     {
-        if(irDistFwd() > 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.LS)?
+        if(irDistFwd() > 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.RS)?
                 (float)IrBinThs.Fwd2.ThHi : (float)IrBinThs.Fwd1.ThHi))
             IrBins.Fwd = 0;
     }
     else
     {
-        if(irDistFwd() < 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.LS)?
+        if(irDistFwd() < 0.001f * ((TskIr::IrBins.LS && TskIr::IrBins.RS)?
                 (float)IrBinThs.Fwd2.ThLo : (float)IrBinThs.Fwd1.ThLo))
             IrBins.Fwd = 1;
     }
@@ -313,8 +313,8 @@ void task(void *pvParameters)
     IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (125 | (135 << 16));
     IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (65 | (75 << 16));
     IrBins.ch[3] = 1; IrBinThs.ch[3].Th = (60 | (70 << 16));
-    IrBins.Fwd   = 0; IrBinThs.Fwd1.Th   = (105 | (120 << 16));
-                      IrBinThs.Fwd2.Th   = (105 | (120 << 16));
+    IrBins.Fwd   = 0; IrBinThs.Fwd1.Th   = (120 | (130 << 16));
+                      IrBinThs.Fwd2.Th   = (100 | (110 << 16));
     // IrBins.ch[0] = 0; IrBinThs.ch[0].Th = (250 | (285 << 16));
     // IrBins.ch[1] = 0; IrBinThs.ch[1].Th = (250 | (285 << 16));
     // IrBins.ch[2] = 1; IrBinThs.ch[2].Th = (100 | (150 << 16));

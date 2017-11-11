@@ -336,7 +336,7 @@ void Action(void)
         if(num > 9){
             sprintf(TskTop::dbgStr, "over the limitation\r\n");
             print(TskTop::dbgStr);
-            num = 1;
+            num = 0;
         }
         TskTop::SetLeds(0x0);
 
@@ -353,7 +353,7 @@ void Action(void)
         }
         else
         {
-           num = 1;
+           num = 0;
         }
 
         for(int i = 1; i < num + 1; i++)
@@ -386,10 +386,10 @@ void Action(void)
             } 
         }
 
-        if(act[num] == TskAction::Act::Back
-           ||(act[num] == TskAction::Act::Back | TskAction::Act::Corr)
+        if((act[num] == TskAction::Act::Back)
+           ||(act[num] == (TskAction::Act::Back | TskAction::Act::Corr))
            ||(act[num] == TskAction::Act::Stop)
-           ||(act[num] ==  TskAction::Act::Stop | TskAction::Act::Corr)
+           ||(act[num] ==  (TskAction::Act::Stop | TskAction::Act::Corr))
            || (act[num] == TskAction::Act::RushStop))
         {
             act[num + 1] = TskAction::Act::Null;
@@ -523,9 +523,9 @@ void RandomMode(void){
         }
         rtn = xQueuePost(TskPrint::MbCmd, wall, 0);
         configASSERT(rtn == pdPASS);
-        if(wall[0] == '#' && wall[1] == '#' && wall[2] == '#')
+        if(wall[0] == '#' && wall[2] == '#')
         {
-            sprintf(TskTop::dbgStr, "%6.3f %6.3f", TskIr::irDistFwd(), TskIr::IrDists.RS);
+            sprintf(TskTop::dbgStr, "%6.3f", TskIr::irDistFwd());
             rtn = xQueuePost(TskPrint::MbCmd, TskTop::dbgStr, 0);
             configASSERT(rtn == pdPASS);
         }

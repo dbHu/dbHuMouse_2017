@@ -371,15 +371,15 @@ struct SeachParam
         // params defines how far will the side ir corr for heading dir effects during diff act
         // after these fwd end corr starts
          HEADING_BY_SIRSIDE_START_DIST = 0.005f;
-         HEADING_BY_SIRSIDE_STOP_DIST = 0.04f;
+         HEADING_BY_SIRSIDE_STOP_DIST = 0.02f;
 
         // 2 params defines segs where side ir corr for heading dir effects during centipede
-         HEADING_BY_SIRFWD_BGNSTAT_POS = 0.015f;
-         HEADING_BY_SIRFWD_BEGIN_POS   = 0.060f;
-         HEADING_BY_SIRFWD_END_POS = (PP::GridSize * 0.667 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
+         HEADING_BY_SIRFWD_BGNSTAT_POS = 0.f;
+         HEADING_BY_SIRFWD_BEGIN_POS   = 0.03f;
+         HEADING_BY_SIRFWD_END_POS = (PP::GridSize * 0.333 +  HEADING_BY_SIRFWD_BEGIN_POS * 0.333);
         // params defines distances added at fwd end corr occur
-         LFWDEND_DIST_W2NW= 0.030f;
-         RFWDEND_DIST_W2NW= 0.038f;
+         LFWDEND_DIST_W2NW= 0.027f;
+         RFWDEND_DIST_W2NW= 0.035f;
          CENTIPEDE_CORR_GAIN = 0.1f;
 
         // left & right turn straight segment when no fwd wall for turnwait

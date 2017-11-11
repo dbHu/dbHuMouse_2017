@@ -85,13 +85,13 @@ CorrYawBySide::CorrYawBySide(float start, float rollback, float end, float rbRat
     : start(start), rollback(rollback), end(end), rbRatio(rbRatio)
 {
     this->wall.msk = 0;
-    this->state = idle;
-    this->nxtSts = idle;
-    this->angAcc = 0.0f;
-    this->rbOmg = 0.0f;
-    this->p = 12.0f;
-    this->tol = 0.0f * 0.01745f;
-    this->sat = 15.0f * 0.01745f;
+    state = idle;
+    nxtSts = idle;
+    angAcc = 0.0f;
+    rbOmg = 0.0f;
+    p = 12.0f;
+    tol = 0.0f * 0.01745f;
+    sat = 5.0f * 0.01745f;
 //    this->getWallAtStart = true;
 }
 CorrYawBySide::~CorrYawBySide()
@@ -142,16 +142,16 @@ float CorrYawBySide::Tick(float pos)
         err -= wall.left ? TskIr::IrYaw.byLS : 0.f;
         err -= wall.right ? TskIr::IrYaw.byRS : 0.f;
         err *= (wall.left && wall.right) ? 0.5f : 1.0f;
-//        omg = p * Sat(Cor(err, tol), sat);
-        omg = p * PP::SearchSpeed / TskMotor::CurrentV * Sat(Cor(err, tol), sat);
-        TskMotor::OmgAdj = omg;
+        omg = Sat(Cor(err, tol), sat);
+//        omg = p * PP::SearchSpeed / TskMotor::desire.Velocity * Sat(Cor(err, tol), sat);
+        TskMotor::OmgAdj = p * PP::SearchSpeed / TskMotor::desire.Velocity * omg;
         angAcc += omg * PP::Ts;
         if(nxtSts == rollbacking)
         {
             float rbTime = (end - rollback) / TskMotor::desire.Velocity;
             rbOmg = (rbTime >= 0.001f) ? (-angAcc * rbRatio / rbTime) : 0.0f;
 #if(PRINT_CORRINFO)
-            sprintf(dbgStr, "Y:%6.3f", angAcc);
+            sprintf(dbgStr, "omg:%6.3f err:%6.3f Omg:%6.3f", omg, err, rbOmg);
             rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
             configASSERT(rtn == pdPASS);
 #endif
@@ -300,8 +300,13 @@ bool CorrEndBySide::TickORush(float pos)
             len = MotionCalcFwd(TskMotor::desire.Velocity, velEnd, dist, vs, &accl);
             MotionSeqFlush();
             for(int i = 0; i < len; i++) MotionSeqWrite(vs[i], 0.0f);
+#if(PRINT_CORRINFO)
+            sprintf(dbgStr, "pstamp:%6.3f,perr:%6.3f,corr:%6.3f\r\n", pstamp, perr,dist);
+            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+            configASSERT(rtn == pdPASS);
+#endif
+            state = finished;
         }
-        state = finished;
         break;
     case finished:
     default:
@@ -321,6 +326,11 @@ bool CorrEndBySide::Tick(float pos)
         if(wall.left && TskIr::IrBins.LS == 0)
         {
             len = MotionCalcFwd(TskMotor::desire.Velocity, velEnd, lApp, vs, &accl);
+#if(PRINT_CORRINFO)
+            sprintf(dbgStr, "corr:%6.3f\r\n", lApp);
+            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+            configASSERT(rtn == pdPASS);
+#endif
             MotionSeqFlush();
             for(int i = 0; i < len; i++) MotionSeqWrite(vs[i], 0.0f);
             TskTop::SetLeds(0x2);
@@ -329,6 +339,11 @@ bool CorrEndBySide::Tick(float pos)
         else if(wall.right && TskIr::IrBins.RS == 0)
         {
             len = MotionCalcFwd(TskMotor::desire.Velocity, velEnd, rApp, vs, &accl);
+#if(PRINT_CORRINFO)
+            sprintf(dbgStr, "corr:%6.3f\r\n", rApp);
+            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+            configASSERT(rtn == pdPASS);
+#endif
             MotionSeqFlush();
             for(int i = 0; i < len; i++) MotionSeqWrite(vs[i], 0.0f);
             TskTop::SetLeds(0x1);
@@ -348,9 +363,17 @@ bool CorrEndBySide::Tick(float pos)
         break;
     case waiting:
         if(wallDisappearing || pos >= end)
+        {
+#if(PRINT_CORRINFO)
+            sprintf(dbgStr, "pos:%6.3f\r\n", pos);
+            rtn = xQueuePost(TskPrint::MbCmd, dbgStr, (TickType_t)0);
+            configASSERT(rtn == pdPASS);
+#endif
             state = finished;
+        }
         break;
     case finished:
+
     default:
         state = finished;
         break;
@@ -610,7 +633,7 @@ float CorrCentipede::Tick(float pos)
         {
             //TODO
             if(TskMotor::DistanceAcc - TskIr::SideLWallDisPos > 0.f
-               && TskMotor::DistanceAcc - TskIr::SideLWallDisPos < 0.03f
+               && TskMotor::DistanceAcc - TskIr::SideLWallDisPos < 0.06f
                && TskIr::SideLWallDisPos > 1e-6f)
             {
                 lPos = TskIr::SideLWallDisPos;
@@ -619,7 +642,7 @@ float CorrCentipede::Tick(float pos)
         if(rPos < 0.f)  // rpos not updated
         {
             if(TskMotor::DistanceAcc - TskIr::SideRWallDisPos > 0.f
-               && TskMotor::DistanceAcc - TskIr::SideRWallDisPos < 0.03f
+               && TskMotor::DistanceAcc - TskIr::SideRWallDisPos < 0.06f
                && TskIr::SideRWallDisPos > 1e-6f)
             {
                 rPos = TskIr::SideRWallDisPos;
@@ -631,7 +654,7 @@ float CorrCentipede::Tick(float pos)
             float crTime, rbTime;
             if(lPos > 0.f && rPos > 0.f)
             {
-                ang = (lPos - rPos) / PP::GridSize;
+                ang = (0.8f * lPos - rPos) / PP::GridSize;
             }
             else
                 ang = 0.f;

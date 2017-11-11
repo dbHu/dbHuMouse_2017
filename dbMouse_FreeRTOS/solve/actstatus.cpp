@@ -7,6 +7,40 @@
 #include "actstatus.h"
 
 #if 0
+    void sendNFwd(int p, bool type)
+    {
+        switch(type){
+            case 'D':
+                if(p == 1)
+                {
+                    solve::QAct->En(TskAction::Act::DRush);
+                }
+                else{
+                    for(int i = 0; i < p - 1; i++)
+                    {
+                        solve::QAct->En(TskAction::Act::DRushAcc);
+                    }
+                    solve::QAct->En(TskAction::Act::DRushDea);
+                }
+                break;
+            case 'O':
+            default:
+                if(p == 1)
+                {
+                    solve::QAct->En(TskAction::Act::ORush);
+                }
+                else{
+                    for(int i = 0; i < p - 1; i++)
+                    {
+                        solve::QAct->En(TskAction::Act::ORushAcc);
+                    }
+                    solve::QAct->En(TskAction::Act::ORushDea);
+                }
+                break;
+        }
+
+    }
+    
     void Turn2RushAct(Queue<Turning::Type> *q)
     {
         int status = 0;

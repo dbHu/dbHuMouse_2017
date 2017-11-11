@@ -27,8 +27,8 @@
 namespace TskTop{
 const int tskPrio1 = 4;
 const int tskStkSize1 = 1024;
-const int tskPrio2 = 2;
-const int tskStkSize2 = 128;
+//const int tskPrio2 = 2;
+//const int tskStkSize2 = 128;
 
 QueueHandle_t MbCmd, MbLed;
 

@@ -353,7 +353,7 @@ void Init()
     MbCmd = xQueueCreate(4, sizeof(MotorMsg::MsgType));
     configASSERT(MbCmd);
 
-    QMotor = new Queue<VelOmega, true>(650);
+    QMotor = new Queue<VelOmega, true>(1000);
 //    hpsize = xPortGetFreeHeapSize();
     // Create tasks
     rtn = xTaskCreate(task, (const portCHAR *)"TopMotor",

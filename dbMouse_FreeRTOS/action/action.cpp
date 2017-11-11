@@ -68,7 +68,7 @@ void WaitSeqEmpty(void)
 {
     bool rtn;
 
-    while(TskMotor::QMotor->Len() > 0)
+    while(TskMotor::QMotor->Len() > 1)
     {
         rtn = xSemaphorePend(SemActTick, 2);
         configASSERT(rtn == pdPASS);
@@ -331,10 +331,10 @@ void actFwd(bool corr)
     getWall(wall);
     len = MotionCalcFwd(PP::SearchSpeed, PP::SearchSpeed, PP::GridSize, v_s, &accl);
 
-    CorrYawBySide corrYaw(CP.HEADING_BY_SIRSIDE_START_DIST, CP.HEADING_BY_SIRSIDE_STOP_DIST - 0.01f,
-                          CP.HEADING_BY_SIRSIDE_STOP_DIST, 0.1f);//, 0.00f);
+    CorrYawBySide corrYaw(CP.HEADING_BY_SIRSIDE_START_DIST, CP.HEADING_BY_SIRSIDE_START_DIST + 0.01f,
+                          CP.HEADING_BY_SIRSIDE_STOP_DIST, 1.f);//, 0.00f);
     //                    start        end    l app   r app
-    CorrEndBySide corrEnd(0.000f, 0.6f * PP::GridSize,
+    CorrEndBySide corrEnd(0.f, 0.85f * PP::GridSize,
             CP.LFWDEND_DIST_W2NW, CP.RFWDEND_DIST_W2NW, PP::SearchSpeed);
 
     CorrCentipede corrCent(CP.HEADING_BY_SIRFWD_BGNSTAT_POS, CP.HEADING_BY_SIRFWD_BEGIN_POS,
@@ -1092,7 +1092,7 @@ void task(void *pvParameters)
 
         }
 		end_msg = ActMsg::Action_ed;
-		rtn = xQueuePost(TskTop::MbCmd, &end_msg, (TickType_t)0);
+		rtn = xQueuePost(TskTop::MbCmd, &end_msg, 0);
         configASSERT(rtn == pdPASS);
     }
 }
